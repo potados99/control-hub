@@ -1,0 +1,3 @@
+#!/bin/bash
+
+sudo arduino --upload control-hub.ino --port /dev/ttyUSB0
