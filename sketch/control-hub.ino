@@ -25,12 +25,22 @@ void do_action(String incommingString) {
    for (int i = 0; i < 3; ++ i) {
      if (commands[i] == "") {
        Serial.print(String(i) + " args.");
+       beep(i);
        return;
      }
    }
 
 }
 
+
+void beep(int howMany) {
+  for (int i = 0; i < howMany; i ++) {
+    on();
+    delay(50);
+    off();
+    delay(200);
+  }
+}
 
 
 void rapidFire() {
