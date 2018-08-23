@@ -1,6 +1,6 @@
 #define BUZZER_PIN 4
 #define SERIAL_BAUDRATE 9600
-#define PARAM_MAX
+#define PARAM_MAX 3
 
 String input;
 
@@ -28,13 +28,14 @@ void loop() {
 void do_action(String incommingString) {
   if (incommingString == "") return;
 
-  String commands[3];
-  for (int i = 0; i < PARAM_MAX; ++ i) { commands[i] = split(incommingString, ' ', 0); }
+  String commands[PARAM_MAX];
+  for (int i = 0; i < PARAM_MAX; ++ i) { commands[i] = split(incommingString, ' ', i); }
 
   for (int i = 2; i >= 0; -- i) {
     if (commands[i] != "") {
-       Serial.print(String(i+1) + " args.\n");
+       // Serial.print(String(i+1) + " args.\n");
        beep(i + 1);
+       Serial.write("T\n");
        return;
     }
   } /* end of for */

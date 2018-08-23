@@ -22,16 +22,19 @@ void get_setting(const char *_section, const char *_key, char *_val_out) {
 				break;
 
 			case SPACE:
-				fprintf(stderr, "Space not allowed");
+				ERROR("Config: Space not allowed\n")
+				break;
+
+			case LINE_FEED:
 				break;
 
 			default:
-				if (inTargetSection && _get_key_value(fbuff, &pos, _key, _val_out)) return;
+				if (is_alpha(fbuff[pos]) && inTargetSection && _get_key_value(fbuff, &pos, _key, _val_out)) return;
 				break;
 		} /* switch end */
 		++ pos;
 	} /* while end */
-	printf("Key not found.");
+	printf("Key not found.\n");
 }
 
 
@@ -67,7 +70,7 @@ int read_file(const char *_filePath, char *_file_out) {
 
 
 bool _get_section(char *_fbuff, int *pos, const char *_section) {
-	char *begin = _fbuff + *pos + 1;
+	char *begin = _fbuff + *pos + 1; /* the opening brace + 1 */
 	char *end = strchr(begin, SECTION_CLOSE);
 	if (end == NULL) ERROR("Config: Section not closed\n")
 
@@ -80,14 +83,14 @@ bool _get_section(char *_fbuff, int *pos, const char *_section) {
 
 	bool inTargetSection = (strcmp(curSection, _section) == 0) ? TRUE : FALSE;
 
-	*pos += stringLength + 1;
+	*pos += stringLength;
 
 	return inTargetSection;
 }
 
 
 bool _get_key_value(char *_fbuff, int *pos, const char *_key, char *_val_out) {
-	char *begin = _fbuff + *pos + 1;
+	char *begin = _fbuff + *pos;
 	char *end = strchr(begin, LINE_FEED);
 	if (end == NULL) ERROR("Config: Line not completed\n")
 
@@ -143,4 +146,8 @@ bool _split(char *_origin, char _delim, char *_out1, char *_out2) {
 	_out1[keyEnd - keyBegin] = 0x00;
 	_out2[valEnd - valBegin] = 0x00;
 	return TRUE;
+}
+
+bool is_alpha(char target) {
+	return (target >= 'a' && target <= 'z' || target >= 'A' && target <= 'Z');
 }

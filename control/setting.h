@@ -17,4 +17,6 @@ bool _get_key_value(char *_fbuff, int *pos, const char *_key, char *_val_out);
 
 bool _split(char *_origin, char _delim, char *_out1, char *_out2);
 
+bool is_alpha(char target);
+
 #endif
