@@ -25,6 +25,8 @@ void do_action(String incommingString) {
    for (int i = 0; i < 3; ++ i) {
      if (commands[i] == "") {
        Serial.print(String(i) + " args.");
+       Serial.print(incommingString + '\n');
+
        beep(i);
        return;
      }
