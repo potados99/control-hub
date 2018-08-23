@@ -8,6 +8,10 @@
 #define FILE_BUFFER_MAX 1024
 #define SETTING_LENG_MAX 64
 
+typedef enum bool {
+  TRUE = 1,
+  FALSE = 0
+}
 
 void get_setting(const char *_section, const char *_key, char *_val_out);
 int read_file(const char *_filePath, char *_file_out);
