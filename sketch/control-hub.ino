@@ -1,5 +1,6 @@
 #define BUZZER_PIN 4
 #define SERIAL_BAUDRATE 9600
+#define PARAM_MAX
 
 String input;
 
@@ -7,30 +8,36 @@ void setup() {
   pinMode(BUZZER_PIN, OUTPUT);
   Serial.begin(SERIAL_BAUDRATE);
   Serial.setTimeout(0);
+
+  Serial.println("Waiting for Raspberry Pi to send a signal...\n");
 }
 
 void loop() {
   if (Serial.available() > 0) {
-    input = Serial.readStringUntil('\n');
-    do_action(input);
+    char recieved = Serial.read();
+    if (recieved == '\n') {
+        do_action(input);
+	input = "";
+        return;
+    }
+
+    input += recieved;
   }
 }
 
 void do_action(String incommingString) {
-   String commands[3];
-   commands[0] = split(incommingString, ' ', 0);
-   commands[1] = split(incommingString, ' ', 1);
-   commands[2] = split(incommingString, ' ', 2);
+  if (incommingString == "") return;
 
-   for (int i = 0; i < 3; ++ i) {
-     if (commands[i] == "") {
-       Serial.print(String(i) + " args.");
-       Serial.print(incommingString + '\n');
+  String commands[3];
+  for (int i = 0; i < PARAM_MAX; ++ i) { commands[i] = split(incommingString, ' ', 0); }
 
-       beep(i);
+  for (int i = 2; i >= 0; -- i) {
+    if (commands[i] != "") {
+       Serial.print(String(i+1) + " args.\n");
+       beep(i + 1);
        return;
-     }
-   }
+    }
+  } /* end of for */
 
 }
 
@@ -38,9 +45,9 @@ void do_action(String incommingString) {
 void beep(int howMany) {
   for (int i = 0; i < howMany; i ++) {
     on();
-    delay(50);
+    delay(20);
     off();
-    delay(200);
+    delay(100);
   }
 }
 
