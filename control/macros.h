@@ -1,6 +1,11 @@
 #ifndef marcos_h
 #define marcos_h
 
+typedef enum bool {
+	TRUE = 1,
+	FALSE = 0
+} bool;
+
 #define ERROR(x) { fprintf(stderr, "[ERROR] %s", x); exit(1); }
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 
