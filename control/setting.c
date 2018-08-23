@@ -10,100 +10,28 @@
 #define ERROR(x) fprintf(stderr, "%s", x);
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 
-void get_setting(const char *_section, const char *_key, char *_dest) {
+void get_setting(const char *_section, const char *_key, char *_val_out) {
 	// read file
 	char fbuff[FILE_BUFFER_MAX];
 	int fsize = read_file(CONFIG_FILE_PATH, fbuff);
 	int pos = 0;
 
-	int expectingVal = 0;
-	int inTargetSection = 0;
-	int inTargetKey = 0;
-
-	char curSection[SETTING_KEY_LENG_MAX];
-	char curKey[SETTING_KEY_LENG_MAX];
+	bool inTargetSection = false;
 
 	while (pos < fsize) {
 		switch (fbuff[pos]) {
 
-			case SECTION_OPEN: {
-				char *begin = fbuff + pos + 1;
-               	 		char *end = strchr(begin, SECTION_CLOSE);
-
-	                	if (end == NULL) ERROR("config.txt: Section not closed\n")
-
-                		int stringLength = (int)end - (int)begin;
-
-				if (stringLength > SETTING_KEY_LENG_MAX) ERROR("Config: Section name is too long\n")
-
-				memcpy(curSection, begin, stringLength);
-				curSection[strlen(curSection) - 1] = '\0';
-
-				if (!strcmp(curSection, _section))
-					inTargetSection = 1;
-				else
-					inTargetSection = 0;
-
-				pos += stringLength + 1;
-
-				}
-				break;
-
-			case EQUAL:
-				expectingVal = 1;
+			case SECTION_OPEN:
+					inTargetSection = _get_section(fbuff, &pos, _section);
 				break;
 
 			case SPACE:
+				fprintf(stderr, "Space not allowed");
 				break;
 
-			case LINE_FEED:
-				expectingVal = 0;
+			default:
+				if (_get_key_value(fbuff, &pos, _key, _val_out)) return;
 				break;
-
-			default: {
-				if (! (fbuff[pos] == '/' ||fbuff[pos] >= 'A' && fbuff[pos] <= 'Z' || fbuff[pos] >= 'a' && fbuff[pos] <= 'z')) break; /* process only when it is a character */
-
-				char *begin = fbuff + pos;
-                                char *end; /* detect end of word */
-				char *endWithEqual = strchr(begin, EQUAL) - 0;
-				char *endWithLF = strchr(begin, LINE_FEED) - 0;
-
-				if (endWithLF == NULL && endWithEqual == NULL) end = NULL;
-				else if (endWithLF != NULL && endWithEqual == NULL) end = endWithLF;
-				else if (endWithLF == NULL && endWithEqual != NULL) end = endWithEqual;
-				else end = MIN(endWithLF, endWithEqual);
-
-                                if (end == NULL) ERROR("Config: Key or value is broken\n")
-
-                                int stringLength = (int)end - (int)begin;
-				if (stringLength > FILE_BUFFER_MAX) ERROR("Config: Key or value is too long\n")
-
-                                char curStr[FILE_BUFFER_MAX];
-				for (register int i = 0; i < FILE_BUFFER_MAX; ++ i) {
-					curStr[i] = '\0';
-				}
-                                memcpy(curStr, begin, stringLength);
-				curStr[strlen(curStr)] = '\0';
-
-				if (expectingVal == 1 && inTargetSection == 1 && inTargetKey == 1) {
-					snprintf(_dest, SETTING_VAL_LENG_MAX, "%s", curStr);
-					return;
-				}
-				else {
-					if (strcmp(curStr, _key) == 0) {
-						inTargetKey = 1;
-                                        	snprintf(curKey, SETTING_KEY_LENG_MAX, "%s", curStr);
-					}
-					else {
-						inTargetKey = 0;
-					}
-				}
-
-                                pos += stringLength - 1;
-				}
-				break;
-
-
 		} /* switch end */
 		++ pos;
 	} /* while end */
@@ -111,7 +39,7 @@ void get_setting(const char *_section, const char *_key, char *_dest) {
 }
 
 
-int read_file(const char *_filePath, char *_dest) {
+int read_file(const char *_filePath, char *_file_out) {
 	char buffer[FILE_BUFFER_MAX];
 
         // opening file for reading
@@ -138,3 +66,79 @@ int read_file(const char *_filePath, char *_dest) {
 	return fileSize;
 }
 
+
+bool _get_section(char *_fbuff, int *pos, const char *_section) {
+	char *begin = _fbuff + *pos + 1;
+	char *end = strchr(begin, SECTION_CLOSE);
+	if (end == NULL) ERROR("Config: Section not closed\n")
+
+	int stringLength = (int)end - (int)begin;
+	if (stringLength > SETTING_LENG_MAX) ERROR("Config: Section name is too long\n")
+
+	char curSection[SETTING_LENG_MAX] = 0;
+	memcpy(curSection, begin, stringLength);
+	curSection[strlen(curSection) - 1] = '\0'; /* make it null-terminated */
+
+	bool inTargetSection = (strcmp(curSection, _section) == 0) ? true : false;
+
+	*pos += stringLength + 1;
+
+	return inTargetSection;
+}
+
+
+bool _get_key_value(char *_fbuff, int *pos, const char *_key, char *_val_out) {
+	char *begin = _fbuff + *pos + 1;
+	char *end = strchr(begin, LINE_FEED);
+	if (end == NULL) ERROR("Config: Line not completed\n")
+
+	int stringLength = (int)end - (int)begin;
+	if (stringLength > SETTING_LENG_MAX) ERROR("Config: Key and value line is too long\n")
+
+	char curKeyValLine[SETTING_LENG_MAX*2 + 1] = 0;
+	memcpy(curKeyValLine, begin, stringLength);
+	curKeyValLine[strlen(curSection) - 1] = 0x00; /* make it null-terminated */
+
+	char val[SETTING_LENG_MAX] = 0;
+	char key[SETTING_LENG_MAX] = 0;
+
+	if (! _split_by_token(curKeyValLine, EQUAL, key, val)) ERROR("Config: Failed getting key and value from string.\n")
+
+	*pos += stringLength + 1;
+
+	if (!strcmp(key, _key)) {
+		snprintf(_val_out, SETTING_LENG_MAX, "%s", val);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool _split(char *_origin, char _delim, char *_out1, char *_out2) {
+	if (_origin == NULL) return false;
+	if (_origin[strlen(_origin) - 1] != 0x00) return false;
+	// _origin MUST be a NULL-terminated string.
+	int count 0;
+	for (int i = 0; i < strlen(_origin); ++ i) {
+		if (_origin[i] == _delim) ++ count;
+		if (count > 1) return false;
+	}
+	// when EQUAL(_delim) apears more than once.
+
+	char *keyBegin = _origin + 1;
+	char *keyEnd = strchr(keyBegin, _delim);
+	if (keyEnd == NULL) return false;
+
+	char *valBegin = keyBegin + 1;
+	char *valEnd = strchr(valBegin, 0x00); /* end of _origin MUST be NULL */
+	if (valEnd == NULL) return false;
+
+	memcpy(_out1, keyBegin, keyEnd - keyBegin);
+	memcpy(_out2, valBegin, valEnd - valBegin);
+
+	_out1[strlen(_out1) - 1] = 0x00;
+	_out2[strlen(_out2) - 1] = 0x00;
+
+	return true;
+}
