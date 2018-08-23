@@ -11,7 +11,7 @@ void setup() {
 
 void loop() {
   if (Serial.available() > 0) {
-    input = Serial.readStringUntil("\n");
+    input = Serial.readStringUntil('\n');
     do_action(input);
   }
 }
