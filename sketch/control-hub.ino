@@ -129,6 +129,7 @@ void beep(int howMany) {
 
 void toggle(int pin) {
   digitalWrite(pin, digitalRead(pin) ? LOW : HIGH);
+  beep(1);
 }
 
 void on() {
