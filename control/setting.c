@@ -149,5 +149,5 @@ bool _split(char *_origin, char _delim, char *_out1, char *_out2) {
 }
 
 bool is_alpha(char target) {
-	return (target >= 'a' && target <= 'z' || target >= 'A' && target <= 'Z');
+	return ((target >= 'a' && target <= 'z') || (target >= 'A' && target <= 'Z'));
 }

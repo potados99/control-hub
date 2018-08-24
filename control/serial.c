@@ -23,7 +23,7 @@ bool send_command(const char *command) {
     return FALSE;
   }
 
-  set_interface_attribs (fd, B9600, 0);  // set speed to 9,600 bps, 8n1 (no parity)
+  set_interface_attribs (fd, baudrate, 0);  // set speed to 9,600 bps, 8n1 (no parity)
   set_blocking (fd, 0);
 
   LOGF("Write [%s]\n", command)
@@ -43,8 +43,12 @@ bool send_command(const char *command) {
   int n = read (fd, buf, sizeof buf);
 
   LOGF("Read [%s]\n", buf)
+  printf("%s", buf);
 //  close(fd);
-
+  if (n > 0)
+    return TRUE;
+  else
+    return FALSE;
 }
 
 

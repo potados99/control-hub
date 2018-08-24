@@ -25,5 +25,5 @@ int main(int argc, const char *argv[]) {
 	}
         strcat(cmdBuff, "\n");
 
-	send_command(cmdBuff);
+	return send_command(cmdBuff) ? 0 : 1;
 }
