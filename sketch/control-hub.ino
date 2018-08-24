@@ -6,7 +6,7 @@
 #define SERIAL_BAUDRATE 9600
 #define PARAM_MAX 3
 
-#define IGNORE_UNTIL 30 /* ignore toggling for (10/1000) * 30 seconds */
+#define IGNORE_UNTIL 50000 /* ignore toggling for (10/1000) * 30 seconds */
 
 String input;
 bool isPushed = false;
@@ -15,6 +15,7 @@ unsigned int elapsedAfterToggle = 0;
 
 void setup() {
   pinMode(LIT_BUTTON_PIN, INPUT);
+  digitalWrite(LIT_BUTTON_PIN, HIGH); 
   pinMode(LIT_CONTROL_PIN, OUTPUT);
   pinMode(BUZZER_CONTROL_PIN, OUTPUT);
   pinMode(LED_CONTROL_PIN, OUTPUT);
@@ -46,7 +47,7 @@ void serial_recieve_task() {
 
 void lit_button_input_task() {
   // Fundamental behavior
-  if (! digitalRead(PIN_BUTTON_INPUT)) { /* Button is pushed */
+  if (! digitalRead(LIT_BUTTON_PIN)) { /* Button is pushed */
     if (isPushed == false) {
       if (justToggled == false) {
         toggle(LIT_CONTROL_PIN);
