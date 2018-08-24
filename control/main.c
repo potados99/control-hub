@@ -1,29 +1,19 @@
 #include "serial.h"
 
 int main(int argc, const char *argv[]) {
-        if (argc < 2) {
-            fprintf(stderr, "Arguments not enough.\n");
-            fprintf(stderr, "Usage: $EXCUTABLE [arg1] [arg2].\n");
-            exit(1);
-        }
-
-	if (argc - 1 > COMMAND_MAX) {
-		fprintf(stderr, "Too many arguments. Max is 3.\n");
+	if (argc < 3) {
+		fprintf(stderr, "Arguments not enough.\n");
+		fprintf(stderr, "Usage: $EXCUTABLE [section] [key].\n");
 		exit(1);
 	}
 
-	char cmdBuff[CMDBUFF_MAX] = {0,};
-	for (int i = 0; i < sizeof(cmdBuff); ++ i) {
-		cmdBuff[i] = 0x00;
-	}
+	char cmdBuff[COMMAND_MAX] = {0,};
+	memset (cmdBuff, 0, COMMAND_MAX);
 
 	for (int i = 1; i < argc; ++ i) {
-		if (i > COMMAND_MAX) break;
-
+		if (strlen(argv[i]) > 0)
 		strcat(cmdBuff, argv[i]);
-	        strcat(cmdBuff, " ");
 	}
-        strcat(cmdBuff, "\n");
 
-	return send_command(cmdBuff) ? 0 : 1;
+	send_command(cmdBuff);
 }

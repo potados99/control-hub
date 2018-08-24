@@ -10,6 +10,8 @@
 void get_setting(const char *_section, const char *_key, char *_val_out) {
 	// read file
 	char fbuff[FILE_BUFFER_MAX];
+	memset (fbuff, 0, FILE_BUFFER_MAX);
+
 	int fsize = read_file(CONFIG_FILE_PATH, fbuff);
 	int pos = 0;
 
@@ -18,51 +20,50 @@ void get_setting(const char *_section, const char *_key, char *_val_out) {
 	while (pos < fsize) {
 		switch (fbuff[pos]) {
 			case SECTION_OPEN:
-				inTargetSection = _get_section(fbuff, &pos, _section);
-				break;
+			inTargetSection = _get_section(fbuff, &pos, _section);
+			break;
 
 			case SPACE:
-				ERROR("Config: Space not allowed\n")
-				break;
+			ERROR("Config: Space not allowed\n")
+			break;
 
 			case LINE_FEED:
-				break;
+			break;
 
 			default:
-				if (is_alpha(fbuff[pos]) && inTargetSection && _get_key_value(fbuff, &pos, _key, _val_out)) return;
-				break;
+			if (is_alpha(fbuff[pos]) && inTargetSection && _get_key_value(fbuff, &pos, _key, _val_out)) return;
+			break;
 		} /* switch end */
 		++ pos;
 	} /* while end */
 	printf("Key not found.\n");
 }
 
-
 int read_file(const char *_filePath, char *_file_out) {
-        // opening file for reading
-        FILE *fp;
-        fp = fopen(_filePath, "rb");
+	// opening file for reading
+	FILE *fp;
+	fp = fopen(_filePath, "rb");
 
-        // if fopen returned NULL
-        if (fp == NULL) ERROR("Config: File doesn't exist\n");
+	// if fopen returned NULL
+	if (fp == NULL) ERROR("Config: File doesn't exist\n");
 
-        // get file size
-        fseek(fp, 0, SEEK_END);
-        int fileSize = (int)ftell(fp);
-        fseek(fp, 0, SEEK_SET);
+	// get file size
+	fseek(fp, 0, SEEK_END);
+	int fileSize = (int)ftell(fp);
+	fseek(fp, 0, SEEK_SET);
 
 	if (fileSize == 0) ERROR("File size is zero.\n")
 
 	char buffer[FILE_BUFFER_MAX];
 
-        // read file and save it to buffer
-        if (fread(buffer, fileSize, 1, fp) < 1) {
-	    fclose(fp);
-	    ERROR("Config: Failed reading file\n")
+	// read file and save it to buffer
+	if (fread(buffer, fileSize, 1, fp) < 1) {
+		fclose(fp);
+		ERROR("Config: Failed reading file\n")
 	}
 
-        // done with file
-        fclose(fp);
+	// done with file
+	fclose(fp);
 
 	snprintf(_file_out, FILE_BUFFER_MAX, "%s", buffer);
 	return fileSize;

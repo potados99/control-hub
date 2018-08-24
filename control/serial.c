@@ -14,41 +14,32 @@ bool send_command(const char *command) {
   get_setting(SECTION_KEY, BDRT_KEY, baudrateStr);
   baudrate = atoi(baudrateStr);
 
-//  int fd = open (port, O_RDWR);
-//  int fd = open (port, O_RDWR | O_NOCTTY);
-  int fd = open (port, O_RDWR | O_NOCTTY | O_SYNC);
-//  int fd = open (port, O_RDWR | O_NOCTTY | O_SYNC);
-  if (fd < 0) {
-    fprintf(stderr, "error %d opening %s: %s\n", errno, port, strerror (errno));
-    return FALSE;
-  }
+  //  int fd = open (port, O_RDWR);
+  //  int fd = open (port, O_RDWR | O_NOCTTY);
+  int fd = open(port, O_RDWR | O_NOCTTY | O_SYNC);
+  //  int fd = open (port, O_RDWR | O_NOCTTY | O_SYNC);
+  if (fd < 0) ERROR("Error opening port.\n")
 
   set_interface_attribs (fd, baudrate, 0);  // set speed to 9,600 bps, 8n1 (no parity)
   set_blocking (fd, 0);
 
   LOGF("Write [%s]\n", command)
 
-    /* simple output */
-    int wlen = write(fd, command, strlen(command));
-    if (wlen != strlen(command)) {
-        printf("Error from write: %d, %d\n", wlen, errno);
-    }
-    tcdrain(fd);
+  /* simple output */
+  int wlen = write(fd, command, strlen(command));
+  if (wlen != strlen(command)) ERROR("Error from writing.\n")
+  tcdrain(fd);
 
-
-
-//  usleep ((strlen(command) + 1) * 10);             // sleep enough to transmit the 7 plus
-  // receive 25:  approx 100 uS per char transmit
-  char buf [100] ={0,};
-  int n = read (fd, buf, sizeof buf);
+  char buf [CMDBUFF_MAX] ={0,};
+  int n = read (fd, buf, CMDBUFF_MAX);
 
   LOGF("Read [%s]\n", buf)
-  printf("%s", buf);
-//  close(fd);
-  if (n > 0)
-    return TRUE;
-  else
-    return FALSE;
+
+  printf("%s", buf); /* print result to console */
+
+  close(fd);
+
+  return (n > 0) ? TRUE : FALSE;
 }
 
 
@@ -56,8 +47,7 @@ int set_interface_attribs (int fd, int speed, int parity)
 {
   struct termios tty;
   memset (&tty, 0, sizeof tty);
-  if (tcgetattr (fd, &tty) != 0)
-    return -1;
+  if (tcgetattr (fd, &tty) != 0) ERROR("Error from tcgetattr.\n")
 
   cfsetospeed (&tty, speed);
   cfsetispeed (&tty, speed);
@@ -82,7 +72,7 @@ int set_interface_attribs (int fd, int speed, int parity)
   tty.c_cflag &= ~CRTSCTS;
 
   if (tcsetattr (fd, TCSANOW, &tty) != 0)
-    return -1;
+  return -1;
 
   return 0;
 }
@@ -90,15 +80,9 @@ int set_interface_attribs (int fd, int speed, int parity)
 void set_blocking (int fd, int should_block) {
   struct termios tty;
   memset (&tty, 0, sizeof tty);
-  if (tcgetattr (fd, &tty) != 0)
-  {
-    fprintf(stderr, "error %d from tggetattr", errno);
-    return;
-  }
+  if (tcgetattr (fd, &tty) != 0) ERROR("Error from tggetattr.\n")
 
   tty.c_cc[VMIN]  = should_block ? 1 : 0;
   tty.c_cc[VTIME] = 5;            // 0.5 seconds read timeout
 
-  if (tcsetattr (fd, TCSANOW, &tty) != 0) fprintf(stderr, "error %d setting term attributes", errno);
-
-}
+  if (tcsetattr (fd, TCSANOW, &tty) != 0) ERROR("Error setting term attributes.\n")
