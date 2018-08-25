@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #include "macros.h"
 
-#define COMMAND_MAX 3
+#define ARGS_MAX 3
 #define CMDBUFF_MAX 64
 
 bool send_command(const char *command);
