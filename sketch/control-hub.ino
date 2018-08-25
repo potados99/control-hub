@@ -158,7 +158,7 @@ bool do_action(String incommingString) {
   else if (commands[0] == "LED") {
     suc = power_control(LED_CONTROL_PIN, commands[1]);
   }
-  
+
     return suc;
 }
 
@@ -199,19 +199,16 @@ bool power_control(unsigned short pin, String arg) {
 
   Serial.print("[" + arg + "] ");
 
+  bool suc = false;
+
   if (arg == "ON") {
-    return on(pin);
+    suc = on(pin);
   }
   else if (arg == "OFF") {
-    return off(pin);
+    suc = off(pin)
   }
-  else if (arg == "") {
-    //beep(2);
-    return false;
-  }
-  else {
-    return false;
-  }
+  
+  return suc;
 }
 
 bool check_interrupt() {
