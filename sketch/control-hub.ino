@@ -205,9 +205,9 @@ bool power_control(unsigned short pin, String arg) {
     suc = on(pin);
   }
   else if (arg == "OFF") {
-    suc = off(pin)
+    suc = off(pin);
   }
-  
+
   return suc;
 }
 
