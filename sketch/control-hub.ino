@@ -148,8 +148,6 @@ bool do_action(String incommingString) {
   String commands[PARAM_MAX];
   for (int i = 0; i < PARAM_MAX; ++ i) { commands[i] = split(incommingString, ' ', i); }
 
-  Serial.print("[do action] ");
-
   if (commands[0] == "LIT") {
     return power_control(LIT_CONTROL_PIN, commands[1]);
   }
@@ -162,7 +160,6 @@ bool do_action(String incommingString) {
 }
 
 void beep(int howMany) {
-  Serial.print("[beep ya] ");
   BuzCnt += howMany;
 }
 
@@ -176,8 +173,6 @@ bool toggle(unsigned short pin) {
 }
 
 bool on(unsigned short pin) {
-  Serial.print("[ON] ");
-
   digitalWrite(pin, HIGH);
   beep(1);
   return (read(pin));
@@ -194,10 +189,6 @@ bool read(unsigned short pin) {
 }
 
 bool power_control(unsigned short pin, String arg) {
-  Serial.print("[Power Control!] ");
-
-  Serial.print("[" + arg + "] ");
-
   if (arg == "ON") {
     return on(pin);
   }
@@ -205,7 +196,7 @@ bool power_control(unsigned short pin, String arg) {
     return off(pin);
   }
   else if (arg == "") {
-    //beep(2);
+    beep(2);
     return false;
   }
   else {
