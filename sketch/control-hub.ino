@@ -20,7 +20,8 @@
 
 #ifdef CONSTANTS
 #define INTERRUPT_CODE '4'
-#define TERMINATE ';'
+#define TERMINATE '\n'
+#define TERMINATE_OPTIONAL ';'
 
 #define BUZZER_CONTROL_PIN 2
 #define LIT_BUTTON_PIN 19
@@ -80,9 +81,13 @@ void serial_recieve_task() {
 
   char recieved = Serial.read();
 
-  if (recieved == TERMINATE) {
-    if (do_action(Input)) Serial.write("T\n");
-    else Serial.write("F\n");
+  if ((recieved == TERMINATE) || (recieved == TERMINATE_OPTIONAL)) {
+    if (do_action(Input)) {
+      Serial.write("T\n");
+    }
+    else {
+      Serial.write("F\n");
+    }
     Input = "";
     return; /* once LF came, return. */
   }
@@ -92,11 +97,8 @@ void serial_recieve_task() {
 
 void lit_button_input_task() {
   if (! digitalRead(LIT_BUTTON_PIN)) { /* Button is pushed */
-    Serial.write("Button is currently being pushed!!\n");
     if ((~BtnSt & BTN_IS_PUSHED) && (~BtnSt & BTN_JUST_TOGGLED)) {
       toggle(LIT_CONTROL_PIN);
-      Serial.write("Toggle YEAH!!!\n");
-
     }
     BtnSt |= BTN_IS_PUSHED; /* Add 0000 0001 */
     BtnSt |= BTN_JUST_TOGGLED; /* Add 0000 0010 */
@@ -112,7 +114,7 @@ void lit_button_input_task() {
 }
 
 void beep_task() {
-  if (BuzCnt) {
+  if (BuzCnt > 0) {
     if ((! BuzSt) & BUZ_IS_ON) { /* When buzzer is off */
       // Turn on buzzer
       if (millis() - BuzLastToggle < BUZ_OFF_TIME) return;
