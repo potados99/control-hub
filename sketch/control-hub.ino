@@ -28,7 +28,7 @@
 
 #define SERIAL_BAUDRATE 9600
 #define PARAM_MAX 3
-#define BUZ_PREVENT_BOUNCE_TIME 200 /* millis*/
+#define BUZ_PREVENT_BOUNCE_TIME 120 /* millis*/
 
 #define BTN_IS_PUSHED 0x01
 #define BTN_JUST_TOGGLED 0x02
@@ -71,6 +71,7 @@ void loop() {
   beep_task();
 }
 #endif
+
 
 #ifdef TASK_FUNCTIONS
 void serial_recieve_task() {
@@ -173,8 +174,7 @@ bool check_interrupt() {
 
 
 #ifdef HELPER_FUNCTIONS
-String split(String data, char separator, int index)
-{
+String split(String data, char separator, int index) {
   int found = 0;
   int strIndex[] = {0, -1};
   int maxIndex = data.length()-1;
