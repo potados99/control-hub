@@ -13,7 +13,7 @@ int main(int argc, const char *argv[]) {
 	}
 
 	char cmdBuff[CMDBUFF_MAX] = {0,};
-	memset(cmdbuff, 0, CMDBUFF_MAX);
+	memset(cmdBuff, 0, CMDBUFF_MAX);
 
 	for (int i = 1; i < argc; ++ i) {
 		if (i > ARGS_MAX) break;
