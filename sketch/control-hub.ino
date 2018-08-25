@@ -72,6 +72,7 @@ void loop() {
 }
 #endif
 
+
 #ifdef TASK_FUNCTIONS
 void serial_recieve_task() {
   if (! Serial.available()) return; /* nothing to do when nothing arrived. */
@@ -173,8 +174,7 @@ bool check_interrupt() {
 
 
 #ifdef HELPER_FUNCTIONS
-String split(String data, char separator, int index)
-{
+String split(String data, char separator, int index) {
   int found = 0;
   int strIndex[] = {0, -1};
   int maxIndex = data.length()-1;
