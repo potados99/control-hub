@@ -19,6 +19,8 @@
 
 
 #ifdef CONSTANTS
+#define INTERRUPT_CODE '4'
+
 #define LIT_BUTTON_PIN 2 /* D2 */
 #define LIT_CONTROL_PIN LED_BUILTIN /* D3 */
 #define BUZZER_CONTROL_PIN 4 /* D4 */
@@ -26,15 +28,26 @@
 
 #define SERIAL_BAUDRATE 9600
 #define PARAM_MAX 3
-#define IGNORE_UNTIL 50000 /* ignore toggling for (10/1000) * 30 seconds */
+#define IGNORE_UNTIL 200 /* millis*/
+
+#define BTN_IS_PUSHED 0x01
+#define BTN_JUST_TOGGLED 0x02
+
+#define BUZ_IS_ON 0x01
+#define BUZ_ON_TIME 20 /* millis */
+#define BUZ_OFF_TIME 100
 #endif
 
 
 #ifdef GLOBAL_VARIABLES
-String input;
-bool isPushed = false;
-bool justToggled = false;
-unsigned int elapsedAfterToggle = 0;
+String Input; /* serial input*/
+
+char BtnSt = 0;
+unsigned long BtnLastToggle = 0;
+
+char BuzSt = 0;
+int BuzCnt = 0;
+unsigned long BuzLastToggle = 0;
 #endif
 
 
@@ -55,6 +68,7 @@ void setup() {
 void loop() {
   serial_recieve_task();
   lit_button_input_task();
+  beep_task();
 }
 #endif
 
@@ -65,36 +79,50 @@ void serial_recieve_task() {
   char recieved = Serial.read();
 
   if (recieved == '\n') {
-    do_action(input);
-    input = "";
+    do_action(Input);
+    Input = "";
     return; /* once LF came, return. */
   }
 
-  input += recieved; /* else, append recieved char to input */
+  Input += recieved; /* else, append recieved char to input */
 }
 
 void lit_button_input_task() {
-  // Fundamental behavior
   if (! digitalRead(LIT_BUTTON_PIN)) { /* Button is pushed */
-    if (isPushed == false) {
-      if (justToggled == false) {
+    if ((! BtnSt) & BTN_IS_PUSHED) { /* When 0000 XXX0 */
+      if ((! BtnSt) & BTN_JUST_TOGGLED) { /* When 0000 XX0X */
+        // Heavy works...
         toggle(LIT_CONTROL_PIN);
-        justToggled = true;
+        BtnSt |= BTN_JUST_TOGGLED /* Add 0000 0010 */
+        BtnLastToggle = millis();
       }
     }
-    isPushed = true;
+    BtnSt |= BTN_IS_PUSHED; /* Add 0000 0001 */
   }
   else {
-    isPushed = false;
+    BtnSt &= ! BTN_IS_PUSHED; /* Subtract 0000 0001 */
   }
 
-  if (justToggled == true) {
-    elapsedAfterToggle ++;
+  if ((! BtnSt) & BTN_JUST_TOGGLED) return;
+  if (millis() - BtnLastToggle >= IGNORE_UNTIL) BtnSt &= ! BTN_JUST_TOGGLED;
+}
 
-    if (elapsedAfterToggle >= IGNORE_UNTIL) {
-      justToggled = false;
-      elapsedAfterToggle = 0;
+void beep_task() {
+  if (BuzCnt) {
+    if ((! BuzSt) & BUZ_IS_ON) { /* When buzzer is off */
+      // Turn on buzzer
+      if (millis() - BuzLastToggle < BUZ_OFF_TIME) return;
+      on(BUZZER_CONTROL_PIN);
+      BuzSt |= BUZ_IS_ON;
     }
+    else { /* When buzzer is on */
+      // Turn off buzzer
+      if (millis() - BuzLastToggle < BUZ_ON_TIME) return;
+      off(BUZZER_CONTROL_PIN);
+      BuzSt &= ! BUZ_IS_ON;
+      BuzCnt -= 1;
+    }
+    BuzLastToggle = millis();
   }
 }
 #endif
@@ -119,29 +147,29 @@ void do_action(String incommingString) {
 }
 
 void beep(int howMany) {
-  for (int i = 0; i < howMany; i ++) {
-    on();
-    delay(10);
-    off();
-    delay(50);
-  }
+  BuzCnt += howMany;
 }
 
-void toggle(int pin) {
+void toggle(unsigned short pin) {
   digitalWrite(pin, digitalRead(pin) ? LOW : HIGH);
   beep(1);
 }
 
-void on() {
-  digitalWrite(BUZZER_CONTROL_PIN, HIGH);
+void on(unsigned short pin) {
+  digitalWrite(pin, HIGH);
 }
 
-void off() {
-  digitalWrite(BUZZER_CONTROL_PIN, LOW);
+void off(unsigned short pin) {
+  digitalWrite(pin, LOW);
+}
+
+int read(unsigned short pin) {
+  return digitalRead(pin);
 }
 
 bool check_interrupt() {
-  return (char)Serial.read() == '4';
+  if (! Serial.available()) return false;
+  return (char)Serial.read() == INTERRUPT_CODE;
 }
 #endif
 
