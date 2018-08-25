@@ -101,6 +101,8 @@ void lit_button_input_task() {
   }
   else {
     BtnSt &= ~BTN_IS_PUSHED; /* Subtract 0000 0001 */
+    BtnSt |= BTN_JUST_TOGGLED; /* Add 0000 0010 */
+    BtnLastToggle = millis();
   }
 
   if (~BtnSt & BTN_JUST_TOGGLED) return;
