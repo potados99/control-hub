@@ -93,9 +93,11 @@ void serial_recieve_task() {
 void lit_button_input_task() {
   if (! digitalRead(LIT_BUTTON_PIN)) { /* Button is pushed */
     Serial.write("Button is currently being pushed!!\n");
-    if ((~BtnSt & BTN_IS_PUSHED) && (~BtnSt & BTN_JUST_TOGGLED))
+    if ((~BtnSt & BTN_IS_PUSHED) && (~BtnSt & BTN_JUST_TOGGLED)) {
       toggle(LIT_CONTROL_PIN);
+      Serial.write("Toggle YEAH!!!\n");
 
+    }
     BtnSt |= BTN_IS_PUSHED; /* Add 0000 0001 */
     BtnSt |= BTN_JUST_TOGGLED; /* Add 0000 0010 */
     BtnLastToggle = millis();
@@ -150,25 +152,28 @@ void beep(int howMany) {
 }
 
 bool toggle(unsigned short pin) {
-  digitalWrite(pin, !digitalRead(pin));
-  beep(1);
-  return true;
+  if (read(pin)) {
+    return off(pin);
+  }
+  else {
+    return on(pin);
+  }
 }
 
 bool on(unsigned short pin) {
   digitalWrite(pin, HIGH);
   beep(1);
-  return (digitalRead(pin) == HIGH);
+  return (read(pin));
 }
 
 bool off(unsigned short pin) {
   digitalWrite(pin, LOW);
   beep(1);
-  return (digitalRead(pin) == LOW);
+  return (!read(pin));
 }
 
-int read(unsigned short pin) {
-  return digitalRead(pin);
+bool read(unsigned short pin) {
+  return (bool)bitRead(PORTD,pin);
 }
 
 bool power_control(unsigned short pin, String arg) {
