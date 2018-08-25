@@ -40,7 +40,7 @@
 
 
 #ifdef GLOBAL_VARIABLES /* thread safe */
-String Input; /* serial input*/
+String Input; /* serial input */
 
 char BtnSt = 0;
 unsigned long BtnLastToggle = 0;
