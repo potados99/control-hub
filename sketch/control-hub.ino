@@ -89,8 +89,8 @@ void serial_recieve_task() {
 
 void lit_button_input_task() {
   if (! digitalRead(LIT_BUTTON_PIN)) { /* Button is pushed */
-    if ((! BtnSt) & BTN_IS_PUSHED) { /* When 0000 XXX0 */
-      if ((! BtnSt) & BTN_JUST_TOGGLED) { /* When 0000 XX0X */
+    if (~BtnSt & BTN_IS_PUSHED) { /* When 0000 XXX0 */
+      if (~BtnSt & BTN_JUST_TOGGLED) { /* When 0000 XX0X */
         // Heavy works...
         toggle(LIT_CONTROL_PIN);
         BtnSt |= BTN_JUST_TOGGLED; /* Add 0000 0010 */
@@ -100,11 +100,11 @@ void lit_button_input_task() {
     BtnSt |= BTN_IS_PUSHED; /* Add 0000 0001 */
   }
   else {
-    BtnSt &= ! BTN_IS_PUSHED; /* Subtract 0000 0001 */
+    BtnSt &= ~BTN_IS_PUSHED; /* Subtract 0000 0001 */
   }
 
-  if ((! BtnSt) & BTN_JUST_TOGGLED) return;
-  if (millis() - BtnLastToggle >= IGNORE_UNTIL) BtnSt &= ! BTN_JUST_TOGGLED;
+  if (~BtnSt & BTN_JUST_TOGGLED) return;
+  if (millis() - BtnLastToggle >= IGNORE_UNTIL) BtnSt &= ~BTN_JUST_TOGGLED;
 }
 
 void beep_task() {
