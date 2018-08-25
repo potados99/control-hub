@@ -118,7 +118,7 @@ void beep_task() {
     if ((! BuzSt) & BUZ_IS_ON) { /* When buzzer is off */
       // Turn on buzzer
       if (millis() - BuzLastToggle > BUZ_OFF_TIME) {
-        on(BUZZER_CONTROL_PIN);
+        digitalWrite(BUZZER_CONTROL_PIN, HIGH);
         BuzSt |= BUZ_IS_ON;
         BuzLastToggle = millis();
       }
@@ -126,7 +126,7 @@ void beep_task() {
     else { /* When buzzer is on */
       // Turn off buzzer
       if (millis() - BuzLastToggle > BUZ_ON_TIME) {
-        off(BUZZER_CONTROL_PIN);
+        digitalWrite(BUZZER_CONTROL_PIN, LOW);
         BuzSt &= ! BUZ_IS_ON;
         BuzLastToggle = millis();
 
@@ -158,7 +158,6 @@ bool do_action(String incommingString) {
   }
   else {
     return false;
-
   }
 }
 
