@@ -134,14 +134,10 @@ void do_action(String incommingString) {
   String commands[PARAM_MAX];
   for (int i = 0; i < PARAM_MAX; ++ i) { commands[i] = split(incommingString, ' ', i); }
 
-  switch (commands[0]) {
-    case "LIT":
-      power_control(LIT_CONTROL_PIN, commands[1]);
-      break;
-    case "LED":
-      power_control(LED_CONTROL_PIN, commands[1]);
-      break;
-  }
+  if (commands[0] == "LIT")
+    power_control(LIT_CONTROL_PIN, commands[1]);
+  else if (commands[0] == "LED")
+    power_control(LED_CONTROL_PIN, commands[1]);
 
 /*
   for (int i = 2; i >= 0; -- i) {
@@ -177,18 +173,13 @@ int read(unsigned short pin) {
   return digitalRead(pin);
 }
 
-void power_control(unsigned short pin, String command) {
-  switch (command) {
-    case "ON":
-      on(pin);
-      break;
-    case "OFF":
-      off(pin);
-      break;
-    case "":
-      beep(1);
-      break;
-  }
+void power_control(unsigned short pin, String arg) {
+  if (arg == "ON")
+    on(pin);
+  else if (arg == "OFF")
+    off(pin);
+  else if (arg == "")
+    beep(1);
 }
 
 bool check_interrupt() {
