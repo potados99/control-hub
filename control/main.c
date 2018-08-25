@@ -8,14 +8,12 @@ int main(int argc, const char *argv[]) {
         }
 
 	if (argc - 1 > ARGS_MAX) {
-		fprintf(stderr, "Too many arguments. Max is 3.\n");
+		fprintf(stderr, "Too many arguments. Max is %d.\n", ARGS_MAX);
 		exit(1);
 	}
 
 	char cmdBuff[CMDBUFF_MAX] = {0,};
-	for (int i = 0; i < sizeof(cmdBuff); ++ i) {
-		cmdBuff[i] = 0x00;
-	}
+	memset(cmdbuff, 0, CMDBUFF_MAX);
 
 	for (int i = 1; i < argc; ++ i) {
 		if (i > ARGS_MAX) break;
