@@ -79,7 +79,7 @@ void serial_recieve_task() {
 
   char recieved = Serial.read();
 
-  if (recieved == '\n') {
+  if (recieved == '=') {
     if (do_action(Input)) Serial.write("T\n");
     Input = "";
     return; /* once LF came, return. */
@@ -139,6 +139,7 @@ bool do_action(String incommingString) {
   else if (commands[0] == "LED")
     power_control(LED_CONTROL_PIN, commands[1]);
 
+  return true;
 }
 
 void beep(int howMany) {
@@ -165,6 +166,7 @@ int read(unsigned short pin) {
 }
 
 void power_control(unsigned short pin, String arg) {
+  Serial.write("POWER CONTROL!\n")
   if (arg == "ON")
     on(pin);
   else if (arg == "OFF")
