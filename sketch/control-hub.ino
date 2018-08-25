@@ -114,6 +114,8 @@ void lit_button_input_task() {
 }
 
 void beep_task() {
+  Serial.write(BuzCnt);
+  Serial.write("\n");
   if (BuzCnt > 0) {
     if ((! BuzSt) & BUZ_IS_ON) { /* When buzzer is off */
       // Turn on buzzer
@@ -129,7 +131,7 @@ void beep_task() {
         off(BUZZER_CONTROL_PIN);
         BuzSt &= ! BUZ_IS_ON;
         BuzLastToggle = millis();
-        
+
         BuzCnt -= 1;
       }
     }
