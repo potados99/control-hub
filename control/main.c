@@ -1,13 +1,13 @@
 #include "serial.h"
 
 int main(int argc, const char *argv[]) {
-        if (argc < 2) {
+        if (argc < ARGS_MAX - 1) {
             fprintf(stderr, "Arguments not enough.\n");
-            fprintf(stderr, "Usage: $EXCUTABLE [arg1] [arg2].\n");
+            fprintf(stderr, "Usage: $EXCUTABLE [arg1] ...\n");
             exit(1);
         }
 
-	if (argc - 1 > COMMAND_MAX) {
+	if (argc - 1 > ARGS_MAX) {
 		fprintf(stderr, "Too many arguments. Max is 3.\n");
 		exit(1);
 	}
@@ -18,7 +18,7 @@ int main(int argc, const char *argv[]) {
 	}
 
 	for (int i = 1; i < argc; ++ i) {
-		if (i > COMMAND_MAX) break;
+		if (i > ARGS_MAX) break;
 
 		strcat(cmdBuff, argv[i]);
 	        strcat(cmdBuff, " ");
@@ -27,6 +27,6 @@ int main(int argc, const char *argv[]) {
 
 	bool success = send_command(cmdBuff);
 	if (!success) ERROR("Faild getting response.\n")
-	
+
 	return success;
 }
