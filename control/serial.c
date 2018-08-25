@@ -14,13 +14,10 @@ bool send_command(const char *command) {
   get_setting(SECTION_KEY, BDRT_KEY, baudrateStr);
   baudrate = atoi(baudrateStr);
 
-  //  int fd = open (port, O_RDWR);
-  //  int fd = open (port, O_RDWR | O_NOCTTY);
   int fd = open(port, O_RDWR | O_NOCTTY | O_SYNC);
-  //  int fd = open (port, O_RDWR | O_NOCTTY | O_SYNC);
   if (fd < 0) ERROR("Error opening port.\n")
 
-  set_interface_attribs (fd, baudrate, 0);  // set speed to 9,600 bps, 8n1 (no parity)
+  set_interface_attribs (fd, baudrate, 0);  /* set speed to 9,600 bps, 8n1 (no parity) */
   set_blocking (fd, 0);
 
   LOGF("Write [%s]\n", command)
@@ -43,7 +40,7 @@ bool send_command(const char *command) {
 }
 
 
-int set_interface_attribs (int fd, int speed, int parity)
+void set_interface_attribs (int fd, int speed, int parity)
 {
   struct termios tty;
   memset (&tty, 0, sizeof tty);
@@ -71,10 +68,7 @@ int set_interface_attribs (int fd, int speed, int parity)
   tty.c_cflag &= ~CSTOPB;
   tty.c_cflag &= ~CRTSCTS;
 
-  if (tcsetattr (fd, TCSANOW, &tty) != 0)
-  return -1;
-
-  return 0;
+  if (tcsetattr (fd, TCSANOW, &tty) != 0) ERROR("Error from tcsetattr.\n")
 }
 
 void set_blocking (int fd, int should_block) {
@@ -86,3 +80,4 @@ void set_blocking (int fd, int should_block) {
   tty.c_cc[VTIME] = 5;            // 0.5 seconds read timeout
 
   if (tcsetattr (fd, TCSANOW, &tty) != 0) ERROR("Error setting term attributes.\n")
+}

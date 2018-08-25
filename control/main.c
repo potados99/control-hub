@@ -15,5 +15,5 @@ int main(int argc, const char *argv[]) {
 		strcat(cmdBuff, argv[i]);
 	}
 
-	send_command(cmdBuff);
+	if (! send_command(cmdBuff)) ERROR("Failed getting response")
 }
