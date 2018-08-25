@@ -128,8 +128,8 @@ void beep_task() {
 
 
 #ifdef HW_CONTROL_FUNCTIONS
-void do_action(String incommingString) {
-  if (incommingString == "") return;
+bool do_action(String incommingString) {
+  if (incommingString == "") return false;
 
   String commands[PARAM_MAX];
   for (int i = 0; i < PARAM_MAX; ++ i) { commands[i] = split(incommingString, ' ', i); }
@@ -138,17 +138,6 @@ void do_action(String incommingString) {
     power_control(LIT_CONTROL_PIN, commands[1]);
   else if (commands[0] == "LED")
     power_control(LED_CONTROL_PIN, commands[1]);
-
-/*
-  for (int i = 2; i >= 0; -- i) {
-    if (commands[i] != "") {
-      // Serial.print(String(i+1) + " args.\n");
-      beep(i + 1);
-      Serial.write("T\n");
-      return;
-    }
-  }
-*/
 
 }
 
