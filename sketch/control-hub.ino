@@ -221,11 +221,15 @@ bool rapid_toggle(unsigned short pin, String *arg, int argStart) {
 
   for (;;) {
     digitalWrite(pin, HIGH);
+    sleep(10);
     digitalWrite(pin, LOW);
+    sleep(10);
     if (millis() - startTime > duration) break;
   }
 
   digitalWrite(pin, originState);
+
+  return true;
 }
 
 bool check_interrupt() {
