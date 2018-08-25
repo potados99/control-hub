@@ -134,6 +134,16 @@ void do_action(String incommingString) {
   String commands[PARAM_MAX];
   for (int i = 0; i < PARAM_MAX; ++ i) { commands[i] = split(incommingString, ' ', i); }
 
+  switch (commands[0]) {
+    case "LIT":
+      power_control(LIT_CONTROL_PIN, commands[1]);
+      break;
+    case "LED":
+      power_control(LED_CONTROL_PIN, commands[1]);
+      break;
+  }
+
+/*
   for (int i = 2; i >= 0; -- i) {
     if (commands[i] != "") {
       // Serial.print(String(i+1) + " args.\n");
@@ -141,7 +151,8 @@ void do_action(String incommingString) {
       Serial.write("T\n");
       return;
     }
-  } /* end of for */
+  }
+*/
 
 }
 
@@ -164,6 +175,20 @@ void off(unsigned short pin) {
 
 int read(unsigned short pin) {
   return digitalRead(pin);
+}
+
+void power_control(unsigned short pin, String command) {
+  switch (command) {
+    case "ON":
+      on(pin);
+      break;
+    case "OFF":
+      off(pin);
+      break;
+    case "":
+      beep(1);
+      break;
+  }
 }
 
 bool check_interrupt() {
