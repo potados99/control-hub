@@ -178,6 +178,7 @@ bool toggle(unsigned short pin) {
 
 bool on(unsigned short pin) {
   Serial.print("[ON] ");
+  Serial.print("[" + String(pin) + "] ");
 
   digitalWrite(pin, HIGH);
   beep(1);
