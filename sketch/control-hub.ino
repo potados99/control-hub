@@ -171,15 +171,6 @@ int read(unsigned short pin) {
   return digitalRead(pin);
 }
 
-<<<<<<< HEAD
-void power_control(unsigned short pin, String arg) {
-  if (arg == "ON")
-    on(pin);
-  else if (arg == "OFF")
-    off(pin);
-//  else if (arg == "")
-//    beep(2);
-=======
 bool power_control(unsigned short pin, String arg) {
   if (arg == "ON") {
     return on(pin);
@@ -194,7 +185,6 @@ bool power_control(unsigned short pin, String arg) {
   else {
     return false;
   }
->>>>>>> 56e3ad177365429e3b2e036eb2ea6bd6e3ae68b6
 }
 
 bool check_interrupt() {
