@@ -149,10 +149,10 @@ bool do_action(String incommingString) {
   for (int i = 0; i < PARAM_MAX; ++ i) { commands[i] = split(incommingString, ' ', i); }
 
   if (commands[0] == "LIT") {
-    return power_control(LIT_CONTROL_PIN, commands[1]);
+    return power_control(LIT_CONTROL_PIN, commands, 1);
   }
   else if (commands[0] == "LED") {
-    return power_control(LED_CONTROL_PIN, commands[1]);
+    return power_control(LED_CONTROL_PIN, commands, 1);
   }
   else {
     return false;
@@ -188,33 +188,33 @@ bool read(unsigned short pin) {
   return (bool)bitRead(PORTD,pin);
 }
 
-bool power_control(unsigned short pin, String *arg) {
-  if (arg[1] == "ON") {
-    return on(pin);
-  }
-  else if (arg[1] == "OFF") {
-    return off(pin);
-  }
-
-  else if (arg[1] == "RAPID") {
-    return rapid_toggle(pin, arg);
-  }
-  else if (arg[1] == "") {
+bool power_control(unsigned short pin, String *arg, int argStart) {
+  if (arg[argStart] == "") {
     beep(2);
     return false;
+  }
+
+  if (arg[argStart] == "ON") {
+    return on(pin);
+  }
+  else if (arg[argStart] == "OFF") {
+    return off(pin);
+  }
+  else if (arg[argStart] == "RAPID") {
+    return rapid_toggle(pin, arg, argStart + 1);
   }
   else {
     return false;
   }
 }
 
-bool rapid_toggle(unsigned short pin, String *arg) {
-  if (arg[2] == "") {
+bool rapid_toggle(unsigned short pin, String *arg, int argStart) {
+  if (arg[argStart] == "") {
     beep(2);
     return false;
   }
 
-  int duration = arg[2].toDouble() * 1000;
+  int duration = arg[argStart].toDouble() * 1000;
   bool originState = read(pin);
 
   unsigned long startTime = millis();
