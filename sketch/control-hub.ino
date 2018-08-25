@@ -172,13 +172,13 @@ bool toggle(unsigned short pin) {
 
 bool on(unsigned short pin) {
   digitalWrite(pin, HIGH);
-  //beep(1);
+  beep(1);
   return (read(pin));
 }
 
 bool off(unsigned short pin) {
   digitalWrite(pin, LOW);
-  //beep(1);
+  beep(1);
   return (!read(pin));
 }
 
