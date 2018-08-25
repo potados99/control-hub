@@ -149,25 +149,29 @@ void beep(int howMany) {
   BuzCnt += howMany;
 }
 
-void toggle(unsigned short pin) {
+bool toggle(unsigned short pin) {
   digitalWrite(pin, !digitalRead(pin));
   beep(1);
+  return true;
 }
 
-void on(unsigned short pin) {
+bool on(unsigned short pin) {
   digitalWrite(pin, HIGH);
   beep(1);
+  return (digitalRead(pin) == HIGH);
 }
 
-void off(unsigned short pin) {
+bool off(unsigned short pin) {
   digitalWrite(pin, LOW);
   beep(1);
+  return (digitalRead(pin) == LOW);
 }
 
 int read(unsigned short pin) {
   return digitalRead(pin);
 }
 
+<<<<<<< HEAD
 void power_control(unsigned short pin, String arg) {
   if (arg == "ON")
     on(pin);
@@ -175,6 +179,22 @@ void power_control(unsigned short pin, String arg) {
     off(pin);
 //  else if (arg == "")
 //    beep(2);
+=======
+bool power_control(unsigned short pin, String arg) {
+  if (arg == "ON") {
+    return on(pin);
+  }
+  else if (arg == "OFF") {
+    return off(pin);
+  }
+  else if (arg == "") {
+    beep(2);
+    return false;
+  }
+  else {
+    return false;
+  }
+>>>>>>> 56e3ad177365429e3b2e036eb2ea6bd6e3ae68b6
 }
 
 bool check_interrupt() {
