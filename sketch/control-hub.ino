@@ -20,6 +20,7 @@
 
 #ifdef CONSTANTS
 #define INTERRUPT_CODE '4'
+#define TERMINATE '\n'
 
 #define BUZZER_CONTROL_PIN 2
 #define LIT_BUTTON_PIN 19
@@ -79,7 +80,7 @@ void serial_recieve_task() {
 
   char recieved = Serial.read();
 
-  if (recieved == '=') {
+  if (recieved == TERMINATE) {
     if (do_action(Input)) Serial.write("T\n");
     Input = "";
     return; /* once LF came, return. */
@@ -166,7 +167,6 @@ int read(unsigned short pin) {
 }
 
 void power_control(unsigned short pin, String arg) {
-  Serial.write("POWER CONTROL!\n")
   if (arg == "ON")
     on(pin);
   else if (arg == "OFF")
