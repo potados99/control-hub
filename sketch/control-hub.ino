@@ -93,7 +93,7 @@ void lit_button_input_task() {
       if ((! BtnSt) & BTN_JUST_TOGGLED) { /* When 0000 XX0X */
         // Heavy works...
         toggle(LIT_CONTROL_PIN);
-        BtnSt |= BTN_JUST_TOGGLED /* Add 0000 0010 */
+        BtnSt |= BTN_JUST_TOGGLED; /* Add 0000 0010 */
         BtnLastToggle = millis();
       }
     }
