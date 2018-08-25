@@ -9,6 +9,3 @@ $(TARGET) : main.c serial.c setting.c
 
 clean:
 	rm $(BIN)/$(TARGET)
-
-
-
