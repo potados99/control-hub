@@ -39,7 +39,7 @@
 #endif
 
 
-#ifdef GLOBAL_VARIABLES
+#ifdef GLOBAL_VARIABLES /* thread safe */
 String Input; /* serial input*/
 
 char BtnSt = 0;
