@@ -5,6 +5,8 @@
 #define PORT_KEY "port"
 #define BDRT_KEY "baudrate"
 
+#define SLEEP_PER_CAHR 1000
+
 bool send_command(const char *command) {
   char port[SETTING_LENG_MAX] = {0,};
   get_setting(SECTION_KEY, PORT_KEY, port);
@@ -26,6 +28,8 @@ bool send_command(const char *command) {
   int wlen = write(fd, command, strlen(command));
   if (wlen != strlen(command)) ERROR("Error from writing.\n")
   tcdrain(fd);
+
+  usleep((strlen(command) + 10) * SLEEP_PER_CAHR);
 
   char buf [CMDBUFF_MAX] ={0,};
   int n = read (fd, buf, CMDBUFF_MAX);
