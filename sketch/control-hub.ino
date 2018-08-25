@@ -80,7 +80,7 @@ void serial_recieve_task() {
   char recieved = Serial.read();
 
   if (recieved == '\n') {
-    do_action(Input);
+    if (do_action(Input)) Serial.write("T\n");
     Input = "";
     return; /* once LF came, return. */
   }
@@ -157,16 +157,18 @@ void beep(int howMany) {
 }
 
 void toggle(unsigned short pin) {
-  digitalWrite(pin, digitalRead(pin) ? LOW : HIGH);
+  digitalWrite(pin, !digitalRead(pin));
   beep(1);
 }
 
 void on(unsigned short pin) {
   digitalWrite(pin, HIGH);
+  beep(1);
 }
 
 void off(unsigned short pin) {
   digitalWrite(pin, LOW);
+  beep(1);
 }
 
 int read(unsigned short pin) {
@@ -179,7 +181,7 @@ void power_control(unsigned short pin, String arg) {
   else if (arg == "OFF")
     off(pin);
   else if (arg == "")
-    beep(1);
+    beep(2);
 }
 
 bool check_interrupt() {
