@@ -34,8 +34,8 @@
 #define BTN_JUST_TOGGLED 0x02
 
 #define BUZ_IS_ON 0x01
-#define BUZ_ON_TIME 20 /* millis */
-#define BUZ_OFF_TIME 100
+#define BUZ_ON_TIME 15 /* millis */
+#define BUZ_OFF_TIME 50
 #endif
 
 
