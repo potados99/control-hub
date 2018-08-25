@@ -21,10 +21,10 @@
 #ifdef CONSTANTS
 #define INTERRUPT_CODE '4'
 
-#define LIT_BUTTON_PIN 2 /* D2 */
-#define LIT_CONTROL_PIN LED_BUILTIN /* D3 */
-#define BUZZER_CONTROL_PIN 4 /* D4 */
-#define LED_CONTROL_PIN 5 /* D3 */
+#define BUZZER_CONTROL_PIN 2
+#define LIT_BUTTON_PIN 19
+#define LIT_CONTROL_PIN 3
+#define LED_CONTROL_PIN 4
 
 #define SERIAL_BAUDRATE 9600
 #define PARAM_MAX 3
