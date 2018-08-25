@@ -184,6 +184,8 @@ bool read(unsigned short pin) {
 }
 
 bool power_control(unsigned short pin, String arg) {
+  Serial.print("[ Power Control!] ");
+
   if (arg == "ON") {
     return on(pin);
   }
