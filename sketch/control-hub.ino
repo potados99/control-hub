@@ -166,7 +166,7 @@ int read(unsigned short pin) {
 }
 
 void power_control(unsigned short pin, String arg) {
-  Serial.write("POWER CONTROL!\n")
+  Serial.write("POWER CONTROL!\n");
   if (arg == "ON")
     on(pin);
   else if (arg == "OFF")
