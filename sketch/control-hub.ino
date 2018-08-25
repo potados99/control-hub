@@ -156,6 +156,7 @@ bool do_action(String incommingString) {
 }
 
 void beep(int howMany) {
+  Serial.print("[beep ya] ");
   BuzCnt += howMany;
 }
 
