@@ -20,7 +20,7 @@
 
 #ifdef CONSTANTS
 #define INTERRUPT_CODE '4'
-#define TERMINATE '\n'
+#define TERMINATE ';'
 
 #define BUZZER_CONTROL_PIN 2
 #define LIT_BUTTON_PIN 19
@@ -82,6 +82,7 @@ void serial_recieve_task() {
 
   if (recieved == TERMINATE) {
     if (do_action(Input)) Serial.write("T\n");
+    else Serial.write("F\n");
     Input = "";
     return; /* once LF came, return. */
   }
@@ -91,6 +92,7 @@ void serial_recieve_task() {
 
 void lit_button_input_task() {
   if (! digitalRead(LIT_BUTTON_PIN)) { /* Button is pushed */
+    Serial.write("Button is currently being pushed!!\n");
     if ((~BtnSt & BTN_IS_PUSHED) && (~BtnSt & BTN_JUST_TOGGLED))
       toggle(LIT_CONTROL_PIN);
 
@@ -136,11 +138,11 @@ bool do_action(String incommingString) {
   for (int i = 0; i < PARAM_MAX; ++ i) { commands[i] = split(incommingString, ' ', i); }
 
   if (commands[0] == "LIT")
-    power_control(LIT_CONTROL_PIN, commands[1]);
+    return power_control(LIT_CONTROL_PIN, commands[1]);
   else if (commands[0] == "LED")
-    power_control(LED_CONTROL_PIN, commands[1]);
-
-  return true;
+    return power_control(LED_CONTROL_PIN, commands[1]);
+  else
+    return false;
 }
 
 void beep(int howMany) {
