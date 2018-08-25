@@ -19,7 +19,7 @@ int main(int argc, const char *argv[]) {
 		if (i > ARGS_MAX) break;
 
 		strcat(cmdBuff, argv[i]);
-		strcat(cmdBuff, " ");
+		if (i < argc - 1) strcat(cmdBuff, " ");
 	}
 	strcat(cmdBuff, "\n");
 

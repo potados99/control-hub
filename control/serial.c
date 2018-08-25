@@ -5,7 +5,7 @@
 #define PORT_KEY "port"
 #define BDRT_KEY "baudrate"
 
-#define SLEEP_PER_CAHR 1000
+#define SLEEP_PER_CAHR 2000
 
 bool send_command(const char *command) {
   char port[SETTING_LENG_MAX] = {0,};
