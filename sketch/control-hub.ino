@@ -148,6 +148,9 @@ bool do_action(String incommingString) {
   String commands[PARAM_MAX];
   for (int i = 0; i < PARAM_MAX; ++ i) { commands[i] = split(incommingString, ' ', i); }
 
+  Serial.print("[do action] ");
+
+
   if (commands[0] == "LIT")
     return power_control(LIT_CONTROL_PIN, commands[1]);
   else if (commands[0] == "LED")
