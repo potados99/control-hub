@@ -28,7 +28,7 @@
 
 #define SERIAL_BAUDRATE 9600
 #define PARAM_MAX 3
-#define BUZ_PREVENT_BOUNCE_TIME 100 /* millis*/
+#define BUZ_PREVENT_BOUNCE_TIME 200 /* millis*/
 
 #define BTN_IS_PUSHED 0x01
 #define BTN_JUST_TOGGLED 0x02
