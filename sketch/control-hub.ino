@@ -117,18 +117,22 @@ void beep_task() {
   if (BuzCnt > 0) {
     if ((! BuzSt) & BUZ_IS_ON) { /* When buzzer is off */
       // Turn on buzzer
-      if (millis() - BuzLastToggle < BUZ_OFF_TIME) return;
-      on(BUZZER_CONTROL_PIN);
-      BuzSt |= BUZ_IS_ON;
+      if (millis() - BuzLastToggle > BUZ_OFF_TIME) {
+        on(BUZZER_CONTROL_PIN);
+        BuzSt |= BUZ_IS_ON;
+        BuzLastToggle = millis();
+      }
     }
     else { /* When buzzer is on */
       // Turn off buzzer
-      if (millis() - BuzLastToggle < BUZ_ON_TIME) return;
-      off(BUZZER_CONTROL_PIN);
-      BuzSt &= ! BUZ_IS_ON;
-      BuzCnt -= 1;
+      if (millis() - BuzLastToggle > BUZ_ON_TIME) {
+        off(BUZZER_CONTROL_PIN);
+        BuzSt &= ! BUZ_IS_ON;
+        BuzLastToggle = millis();
+        
+        BuzCnt -= 1;
+      }
     }
-    BuzLastToggle = millis();
   }
 }
 #endif
