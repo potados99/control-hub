@@ -19,7 +19,7 @@
 
 
 #ifdef CONSTANTS
-#define INTERRUPT_CODE '4'
+#define INTERRUPT_CODE 27 /* esc */
 #define TERMINATE '\n'
 #define TERMINATE_OPTIONAL ';'
 
@@ -188,14 +188,18 @@ bool read(unsigned short pin) {
   return (bool)bitRead(PORTD,pin);
 }
 
-bool power_control(unsigned short pin, String arg) {
-  if (arg == "ON") {
+bool power_control(unsigned short pin, String *arg) {
+  if (arg[1] == "ON") {
     return on(pin);
   }
-  else if (arg == "OFF") {
+  else if (arg[1] == "OFF") {
     return off(pin);
   }
-  else if (arg == "") {
+
+  else if (arg[1] == "RAPID") {
+    return rapid_toggle(pin, arg);
+  }
+  else if (arg[1] == "") {
     beep(2);
     return false;
   }
@@ -204,9 +208,29 @@ bool power_control(unsigned short pin, String arg) {
   }
 }
 
+bool rapid_toggle(unsigned short pin, String *arg) {
+  if (arg[2] == "") {
+    beep(2);
+    return false;
+  }
+
+  int duration = arg[2].toDouble() * 1000;
+  bool originState = read(pin);
+
+  unsigned long startTime = millis();
+
+  for (;;) {
+    digitalWrite(pin, HIGH);
+    digitalWrite(pin, LOW);
+    if (millis() - startTime > duration) break;
+  }
+
+  digitalWrite(pin, originState);
+}
+
 bool check_interrupt() {
   if (! Serial.available()) return false;
-  return (char)Serial.read() == INTERRUPT_CODE;
+  return Serial.read() == INTERRUPT_CODE;
 }
 #endif
 
