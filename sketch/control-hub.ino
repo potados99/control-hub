@@ -150,13 +150,16 @@ bool do_action(String incommingString) {
 
   Serial.print("[do action] ");
 
+  bool suc = false;
 
-  if (commands[0] == "LIT")
-    return power_control(LIT_CONTROL_PIN, commands[1]);
-  else if (commands[0] == "LED")
-    return power_control(LED_CONTROL_PIN, commands[1]);
-  else
-    return false;
+  if (commands[0] == "LIT") {
+    suc = power_control(LIT_CONTROL_PIN, commands[1]);
+  }
+  else if (commands[0] == "LED") {
+    suc = power_control(LED_CONTROL_PIN, commands[1]);
+  }
+  
+    return suc;
 }
 
 void beep(int howMany) {
