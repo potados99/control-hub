@@ -171,8 +171,8 @@ void power_control(unsigned short pin, String arg) {
     on(pin);
   else if (arg == "OFF")
     off(pin);
-  else if (arg == "")
-    beep(2);
+//  else if (arg == "")
+//    beep(2);
 }
 
 bool check_interrupt() {
