@@ -150,16 +150,16 @@ bool do_action(String incommingString) {
 
   Serial.print("[do action] ");
 
-  bool suc = false;
-
   if (commands[0] == "LIT") {
-    suc = power_control(LIT_CONTROL_PIN, commands[1]);
+    return power_control(LIT_CONTROL_PIN, commands[1]);
   }
   else if (commands[0] == "LED") {
-    suc = power_control(LED_CONTROL_PIN, commands[1]);
+    return power_control(LED_CONTROL_PIN, commands[1]);
   }
+  else {
+    return false;
 
-    return suc;
+  }
 }
 
 void beep(int howMany) {
@@ -178,26 +178,20 @@ bool toggle(unsigned short pin) {
 
 bool on(unsigned short pin) {
   Serial.print("[ON] ");
-  Serial.print("[" + String(pin) + "] ");
 
   digitalWrite(pin, HIGH);
   beep(1);
-
-  bool suc = read(pin);
-  return suc;
+  return (read(pin));
 }
 
 bool off(unsigned short pin) {
   digitalWrite(pin, LOW);
   beep(1);
-
-  bool suc = (read(pin) == false);
-  return suc;
+  return (!read(pin));
 }
 
 bool read(unsigned short pin) {
-  int flag = bitRead(PORTD,pin);
-  return (flag == 0) ? false : true;
+  return (bool)bitRead(PORTD,pin);
 }
 
 bool power_control(unsigned short pin, String arg) {
@@ -205,16 +199,19 @@ bool power_control(unsigned short pin, String arg) {
 
   Serial.print("[" + arg + "] ");
 
-  bool suc = false;
-
   if (arg == "ON") {
-    suc = on(pin);
+    return on(pin);
   }
   else if (arg == "OFF") {
-    suc = off(pin);
+    return off(pin);
   }
-
-  return suc;
+  else if (arg == "") {
+    //beep(2);
+    return false;
+  }
+  else {
+    return false;
+  }
 }
 
 bool check_interrupt() {
