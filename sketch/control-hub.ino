@@ -89,7 +89,8 @@ void serial_recieve_task() {
 
 void lit_button_input_task() {
   if (! digitalRead(LIT_BUTTON_PIN)) { /* Button is pushed */
-    if (~BtnSt & (BTN_IS_PUSHED | BTN_JUST_TOGGLED)) toggle(LIT_CONTROL_PIN);
+    if ((~BtnSt & BTN_IS_PUSHED) && (~BtnSt & BTN_JUST_TOGGLED))
+      toggle(LIT_CONTROL_PIN);
 
     BtnSt |= BTN_IS_PUSHED; /* Add 0000 0001 */
     BtnSt |= BTN_JUST_TOGGLED; /* Add 0000 0010 */
