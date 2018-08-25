@@ -182,7 +182,7 @@ bool on(unsigned short pin) {
   digitalWrite(pin, HIGH);
   beep(1);
 
-  suc = read(pin);
+  bool suc = read(pin);
   return suc;
 }
 
@@ -190,7 +190,7 @@ bool off(unsigned short pin) {
   digitalWrite(pin, LOW);
   beep(1);
 
-  suc = (read(pin) == false);
+  bool suc = (read(pin) == false);
   return suc;
 }
 
