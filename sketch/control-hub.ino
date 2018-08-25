@@ -181,17 +181,22 @@ bool on(unsigned short pin) {
 
   digitalWrite(pin, HIGH);
   beep(1);
-  return (read(pin));
+
+  suc = read(pin);
+  return suc;
 }
 
 bool off(unsigned short pin) {
   digitalWrite(pin, LOW);
   beep(1);
-  return (!read(pin));
+
+  suc = (read(pin) == false);
+  return suc;
 }
 
 bool read(unsigned short pin) {
-  return (bool)bitRead(PORTD,pin);
+  int flag = bitRead(PORTD,pin);
+  return (flag == 0) ? false : true;
 }
 
 bool power_control(unsigned short pin, String arg) {
