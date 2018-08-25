@@ -28,7 +28,7 @@
 
 #define SERIAL_BAUDRATE 9600
 #define PARAM_MAX 3
-#define BUZ_PREVENT_BOUNCE_TIME 200 /* millis*/
+#define BUZ_PREVENT_BOUNCE_TIME 100 /* millis*/
 
 #define BTN_IS_PUSHED 0x01
 #define BTN_JUST_TOGGLED 0x02
@@ -89,20 +89,12 @@ void serial_recieve_task() {
 
 void lit_button_input_task() {
   if (! digitalRead(LIT_BUTTON_PIN)) { /* Button is pushed */
-    if (~BtnSt & BTN_IS_PUSHED) { /* When 0000 XXX0 */
-      if (~BtnSt & BTN_JUST_TOGGLED) { /* When 0000 XX0X */
-        // Heavy works...
-        toggle(LIT_CONTROL_PIN);
-        BtnSt |= BTN_JUST_TOGGLED; /* Add 0000 0010 */
-        BtnLastToggle = millis();
-      }
-    }
-    else { /* When button is staying pushed */
-      BtnSt |= BTN_JUST_TOGGLED; /* Add 0000 0010 */
-      BtnLastToggle = millis();
-    }
+    if (~BtnSt & (BTN_IS_PUSHED | BTN_JUST_TOGGLED)) toggle(LIT_CONTROL_PIN);
 
     BtnSt |= BTN_IS_PUSHED; /* Add 0000 0001 */
+    BtnSt |= BTN_JUST_TOGGLED; /* Add 0000 0010 */
+    BtnLastToggle = millis();
+    return;
   }
   else {
     BtnSt &= ~BTN_IS_PUSHED; /* Subtract 0000 0001 */
