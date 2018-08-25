@@ -28,7 +28,7 @@
 
 #define SERIAL_BAUDRATE 9600
 #define PARAM_MAX 3
-#define IGNORE_UNTIL 200 /* millis*/
+#define BUZ_PREVENT_BOUNCE_TIME 200 /* millis*/
 
 #define BTN_IS_PUSHED 0x01
 #define BTN_JUST_TOGGLED 0x02
@@ -97,16 +97,19 @@ void lit_button_input_task() {
         BtnLastToggle = millis();
       }
     }
+    else { /* When button is staying pushed */
+      BtnSt |= BTN_JUST_TOGGLED; /* Add 0000 0010 */
+      BtnLastToggle = millis();
+    }
+
     BtnSt |= BTN_IS_PUSHED; /* Add 0000 0001 */
   }
   else {
     BtnSt &= ~BTN_IS_PUSHED; /* Subtract 0000 0001 */
-    BtnSt |= BTN_JUST_TOGGLED; /* Add 0000 0010 */
-    BtnLastToggle = millis();
   }
 
   if (~BtnSt & BTN_JUST_TOGGLED) return;
-  if (millis() - BtnLastToggle >= IGNORE_UNTIL) BtnSt &= ~BTN_JUST_TOGGLED;
+  if (millis() - BtnLastToggle >= BUZ_PREVENT_BOUNCE_TIME) BtnSt &= ~BTN_JUST_TOGGLED;
 }
 
 void beep_task() {
