@@ -225,7 +225,7 @@ bool rapid_toggle(unsigned short pin, String *arg, int argStart) {
     digitalWrite(pin, LOW);
     delay(10);
 
-    if (check_interrupt()) return;
+    if (check_interrupt()) break;
     if (millis() - startTime > duration) break;
   }
 
