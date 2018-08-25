@@ -134,6 +134,9 @@ void beep_task() {
       }
     }
   }
+  else {
+    BuzCnt = 0;
+  }
 }
 #endif
 
@@ -186,7 +189,7 @@ bool read(unsigned short pin) {
 bool power_control(unsigned short pin, String arg) {
   Serial.print("[Power Control!] ");
 
-  Serial.print("[" + arg + "]");
+  Serial.print("[" + arg + "] ");
 
   if (arg == "ON") {
     return on(pin);
