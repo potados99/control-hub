@@ -219,8 +219,8 @@ bool power_control(unsigned short pin, String *args, int argStart) {
   }
 }
 
-bool pwm_control(unsigned short pin, String *arg, int argStart) {
-  if (arg[argStart] == "") {
+bool pwm_control(unsigned short pin, String *args, int argStart) {
+  if (args[argStart] == "") {
     beep(2);
     return false;
   }
@@ -238,7 +238,7 @@ bool pwm_control(unsigned short pin, String *arg, int argStart) {
 }
 
 bool rapid_toggle(unsigned short pin, String *args, int argStart) {
-  if (arg[argStart] == "") {
+  if (args[argStart] == "") {
     beep(2);
     return false;
   }
