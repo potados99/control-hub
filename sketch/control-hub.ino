@@ -51,6 +51,8 @@ unsigned long BtnLastToggle = 0;
 char BuzSt = 0;
 int BuzCnt = 0;
 unsigned long BuzLastToggle = 0;
+
+int LedBrightness = 0;
 #endif
 
 
@@ -154,7 +156,7 @@ bool do_action(String incommingString) {
     return power_control(LIT_CONTROL_PIN, commands, argStart + 1);
   }
   else if (commands[argStart] == "LED") {
-    return power_control(LED_CONTROL_PIN, commands, argStart + 1);
+    return pwm_power_control(LED_CONTROL_PIN, &LedBrightness, commands, argStart + 1);
   }
   else if (commands[argStart] == "FAN") {
     return power_control(FAN_CONTROL_PIN, commands, argStart + 1);
@@ -183,10 +185,20 @@ bool on(unsigned short pin) {
   return (read(pin));
 }
 
+bool pwm_on(unsigned short pin, int *pwmValp) {
+  analogWrite(pin, *pwmValp);
+  return true;
+}
+
 bool off(unsigned short pin) {
   digitalWrite(pin, LOW);
   beep(1);
   return (!read(pin));
+}
+
+bool pwm_off(unsigned short pin) {
+  analogWrite(pin, 0);
+  return true;
 }
 
 bool read(unsigned short pin) {
@@ -217,6 +229,48 @@ bool power_control(unsigned short pin, String *args, int argStart) {
   else {
     return false;
   }
+}
+
+bool pwm_power_control(unsigned short pin, int *pwmValp, String *args, int argStart) {
+  if (args[argStart] == "") {
+    beep(2);
+    return false;
+  }
+
+  if (args[argStart] == "ON") {
+    return pwm_on(pin, pwmValp);
+  }
+  else if (args[argStart] == "OFF") {
+    return pwm_off(pin);
+  }
+  else if (args[argStart] == "BRT") {
+    return pwm_control(pin, pwmValp, args, argStart + 1);
+  }
+  else if (args[argStart] == "SPD") {
+    return pwm_control(pin, pwmValp, args, argStart + 1);
+  }
+  else {
+    return false;
+  }
+}
+
+bool pwm_control(unsigned short pin, int *pwmValp, String *args, int argStart) {
+  if (args[argStart] == "") {
+    beep(2);
+    return false;
+  }
+
+  int inputInt = args[argStart].toInt(); /* 0 to 100 val */
+  if ((inputInt < 0) || (inputInt > 100)) {
+    beep(2);
+    return false;
+  }
+
+  int pwmVal = inputInt * 2.55;
+  *pwmValp = pwmVal;
+
+  analogWrite(pin, pwmVal);
+  return true;
 }
 
 bool pwm_control(unsigned short pin, String *args, int argStart) {
