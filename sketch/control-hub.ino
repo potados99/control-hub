@@ -193,33 +193,57 @@ bool read(unsigned short pin) {
   return (bool)bitRead(PORTD,pin);
 }
 
-bool power_control(unsigned short pin, String *arg, int argStart) {
-  if (arg[argStart] == "") {
+bool power_control(unsigned short pin, String *args, int argStart) {
+  if (args[argStart] == "") {
     beep(2);
     return false;
   }
 
-  if (arg[argStart] == "ON") {
+  if (args[argStart] == "ON") {
     return on(pin);
   }
-  else if (arg[argStart] == "OFF") {
+  else if (args[argStart] == "OFF") {
     return off(pin);
   }
-  else if (arg[argStart] == "RAPID") {
-    return rapid_toggle(pin, arg, argStart + 1);
+  else if (args[argStart] == "RPD") {
+    return rapid_toggle(pin, args, argStart + 1);
+  }
+  else if (args[argStart] == "BRT") {
+    return pwm_control(pin, args, argStart + 1);
+  }
+  else if (args[argStart] == "SPD") {
+    return pwm_control(pin, args, argStart + 1);
   }
   else {
     return false;
   }
 }
 
-bool rapid_toggle(unsigned short pin, String *arg, int argStart) {
+bool pwm_control(unsigned short pin, String *arg, int argStart) {
   if (arg[argStart] == "") {
     beep(2);
     return false;
   }
 
-  int duration = arg[argStart].toDouble() * 1000;
+  int inputInt = args[argStart].toInt(); /* 0 to 100 val */
+  if ((inputInt < 0) || (inputInt > 100)) {
+    beep(2);
+    return false;
+  }
+
+  int pwmVal = inputInt * 2.55;
+
+  analogWrite(pin, pwmVal);
+  return true;
+}
+
+bool rapid_toggle(unsigned short pin, String *args, int argStart) {
+  if (arg[argStart] == "") {
+    beep(2);
+    return false;
+  }
+
+  int duration = args[argStart].toDouble() * 1000;
   bool originState = read(pin);
 
   unsigned long startTime = millis();
