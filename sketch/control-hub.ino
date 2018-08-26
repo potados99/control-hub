@@ -27,6 +27,7 @@
 #define LIT_BUTTON_PIN 19
 #define LIT_CONTROL_PIN 3
 #define LED_CONTROL_PIN 4
+#define FAN_CONTROL_PIN 5
 
 #define SERIAL_BAUDRATE 9600
 #define PARAM_MAX 3
@@ -145,14 +146,18 @@ void beep_task() {
 bool do_action(String incommingString) {
   if (incommingString == "") return false;
 
+  int argStart = 0;
   String commands[PARAM_MAX];
-  for (int i = 0; i < PARAM_MAX; ++ i) { commands[i] = split(incommingString, ' ', i); }
+  for (int i = argStart; i < PARAM_MAX; ++ i) { commands[i] = split(incommingString, ' ', i); }
 
-  if (commands[0] == "LIT") {
-    return power_control(LIT_CONTROL_PIN, commands, 1);
+  if (commands[argStart] == "LIT") {
+    return power_control(LIT_CONTROL_PIN, commands, argStart + 1);
   }
-  else if (commands[0] == "LED") {
-    return power_control(LED_CONTROL_PIN, commands, 1);
+  else if (commands[argStart] == "LED") {
+    return power_control(LED_CONTROL_PIN, commands, argStart + 1);
+  }
+  else if (commands[argStart] == "FAN") {
+    return power_control(FAN_CONTROL_PIN, commands, argStart + 1);
   }
   else {
     return false;
