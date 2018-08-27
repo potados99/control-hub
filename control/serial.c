@@ -31,14 +31,27 @@ bool send_command(const char *command) {
 
   usleep((strlen(command) + 10) * SLEEP_PER_CAHR);
 
-  char buf [CMDBUFF_MAX] ={0,};
-  int n = read (fd, buf, CMDBUFF_MAX);
+  char buf[CMDBUFF_MAX];
+  memset(buf, 0, CMDBUFF_MAX);
+
+  int n = read(fd, buf, CMDBUFF_MAX);
+
+  close(fd);
 
   LOGF("Read [%s]\n", buf)
 
-  printf("%s", buf); /* print result to console */
 
-  close(fd);
+  bool notEnded = true;
+  for(int i = 0; i < strlen(buf); ++ i) {
+    if (buf[i] == '\n')  {
+      notEnded = false;
+      buf[i + 1] = 0x00;
+    }
+  }
+
+  if (notEnded) return false;
+
+  fprintf(stdout, "%s", buf); /* print result to console */
 
   return (n > 0) ? TRUE : FALSE;
 }
