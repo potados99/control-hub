@@ -316,7 +316,7 @@ bool pwm_return(int *pwmValp) {
 
 
 bool read(unsigned short pin) {
-  return (((bool)bitRead(PORTD,pin)) || (pulseIn(pin, LOW) != 0));
+  return (((bool)bitRead(PORTD,pin)) || (pulseIn(pin, HIGH) != 0));
 }
 
 void beep(int howMany) {
