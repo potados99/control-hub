@@ -210,8 +210,8 @@ bool power_control(unsigned short pin, int *pwmValp, bool power) {
   else {
     digitalWrite(pin, power);
     beep(1);
-    if (read(pin)) send("PWR CTRL SUC" + TERMINATE);
-    return (read(pin));
+    if (read(pin) == power) send("PWR CTRL SUC" + TERMINATE);
+    return (read(pin) == power);
   }
 
 }
