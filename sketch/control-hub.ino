@@ -88,10 +88,10 @@ void serial_recieve_task() {
 
   if ((recieved == TERMINATE) || (recieved == TERMINATE_OPTIONAL)) {
     if (do_action(Input)) {
-      send("T" + TERMINATE);
+      Serial.write("T\n");
     }
     else {
-      send("F" + TERMINATE);
+      Serial.write("F\n");
     }
     Input = "";
     return; /* once LF came, return. */
