@@ -54,7 +54,7 @@ char BuzSt = 0;
 int BuzCnt = 0;
 unsigned long BuzLastToggle = 0;
 
-int LedBrightness = 0;
+int LedBrightness = 100;
 #endif
 
 
