@@ -204,11 +204,13 @@ bool power_control(unsigned short pin, int *pwmValp, bool power) {
   if (hasPwmState) {
     analogWrite(pin, (power) ? *pwmValp : 0);
     beep(1);
+    Serial.print("PWR CTRL SUC" + TERMINATE);
     return true;
   }
   else {
     digitalWrite(pin, power);
     beep(1);
+    if (read(pin)) Serial.print("PWR CTRL SUC" + TERMINATE);
     return (read(pin));
   }
 
@@ -230,6 +232,8 @@ bool pwm_control(unsigned short pin, int *pwmValp, String *args, int argStart) {
   *pwmValp = inputInt;
 
   analogWrite(pin, (*pwmValp) * PWM_VAL_RATE);
+
+  Serial.print("PWM CTRL SUC" + TERMINATE);
   return true;
 }
 
@@ -245,6 +249,8 @@ bool rapid_toggle(unsigned short pin, int *pwmValp, String *args, int argStart) 
   bool originState = read(pin);
 
   unsigned long startTime = millis();
+
+  Serial.print("RPD CTRL SUC" + TERMINATE);
 
   if (hasPwmState) {
     // PWM
@@ -301,6 +307,7 @@ bool status_return(unsigned short pin, int * pwmValp, String *args, int argStart
 bool power_return(unsigned short pin) {
   String outString = read(pin) ? "ON" : "OFF";
   Serial.print(outString + TERMINATE);
+
   return true;
 }
 
@@ -311,6 +318,7 @@ bool pwm_return(int *pwmValp) {
   Serial.print(outString + TERMINATE);
   return true;
 }
+
 
 bool read(unsigned short pin) {
   return (bool)bitRead(PORTD,pin);
