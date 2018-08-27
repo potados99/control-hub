@@ -278,14 +278,14 @@ bool rapid_toggle(unsigned short pin, int *pwmValp, String *args, int argStart) 
   return true;
 }
 
-bool status_return(unsigned short pin, int * pwmValp, String *args, int argStart) {
+bool status_return(unsigned short pin, int *pwmValp, String *args, int argStart) {
   if (args[argStart] == "") {
     beep(2);
     return false;
   }
 
   if (args[argStart] == "PWR") {
-    return power_return(pin);
+    return power_return(pin, pwmValp);
   }
   else if (args[argStart] == "BRT") {
     return pwm_return(pwmValp);
@@ -298,8 +298,12 @@ bool status_return(unsigned short pin, int * pwmValp, String *args, int argStart
   }
 }
 
-bool power_return(unsigned short pin) {
-  String outString = read(pin) ? "ON" : "OFF";
+bool power_return(unsigned short pin, int *pwmValp) {
+  bool hasPwmState = (pwmValp != NULL);
+
+  bool st = hasPwmState ? read_pwm(pin) : read(pin);
+
+  String outString = st ? "ON" : "OFF";
   send(outString);
 
   return true;
@@ -316,7 +320,11 @@ bool pwm_return(int *pwmValp) {
 
 
 bool read(unsigned short pin) {
-  return (((bool)bitRead(PORTD,pin)) || (analogRead(pin) != 0));
+  return ((bool)bitRead(PORTD,pin));
+}
+
+bool read_pwm(unsigned short pin) {
+  return (bool)OCR2A;
 }
 
 void beep(int howMany) {
