@@ -41,15 +41,15 @@ bool send_command(const char *command) {
   LOGF("Read [%s]\n", buf)
 
 
-  bool notEnded = true;
+  bool notEnded = TRUE;
   for(int i = 0; i < strlen(buf); ++ i) {
     if (buf[i] == '\n')  {
-      notEnded = false;
+      notEnded = FALSE;
       buf[i + 1] = 0x00;
     }
   }
 
-  if (notEnded) return false;
+  if (notEnded) return FALSE;
 
   fprintf(stdout, "%s", buf); /* print result to console */
 
