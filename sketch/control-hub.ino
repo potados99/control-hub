@@ -69,7 +69,7 @@ void setup() {
   Serial.begin(SERIAL_BAUDRATE);
   Serial.setTimeout(0);
 
-  Serial.print("Waiting for Raspberry Pi to send a signal...\n");
+  Serial.print("Waiting for Raspberry Pi to send a signal...");
 }
 
 void loop() {
@@ -364,7 +364,7 @@ String split(String data, char separator, int index) {
 }
 
 void send(String message) {
-  send(message + TERMINATE);
+  Serial.print(message + TERMINATE);
   delay(message.length());
 }
 #endif
