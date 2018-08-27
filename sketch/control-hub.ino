@@ -360,6 +360,6 @@ String split(String data, char separator, int index) {
 }
 
 void send(String message) {
-  Serial.write(message + TERMINATE);
+  Serial.write(message);
 }
 #endif
