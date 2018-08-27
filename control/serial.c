@@ -51,7 +51,7 @@ bool send_command(const char *command) {
 
   if (notEnded) return FALSE;
 
-  fprintf(stdout, "%s", buf); /* print result to console */
+  fprintf(stdout, "%s", buf); /* print only first line to console */
 
   return (n > 0) ? TRUE : FALSE;
 }

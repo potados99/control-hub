@@ -195,7 +195,6 @@ bool device_control(unsigned short pin, int *pwmValp, String *args, int argStart
   else {
     return false;
   }
-
 }
 
 bool power_control(unsigned short pin, int *pwmValp, bool power) {
@@ -317,7 +316,7 @@ bool pwm_return(int *pwmValp) {
 
 
 bool read(unsigned short pin) {
-  return (bool)bitRead(PORTD,pin);
+  return (((bool)bitRead(PORTD,pin)) || (pulseIn(inputPin, LOW) != 0));
 }
 
 void beep(int howMany) {
