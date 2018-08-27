@@ -364,7 +364,7 @@ String split(String data, char separator, int index) {
 }
 
 void send(String message) {
-  Serial.print(message + TERMINATE);
-  delay(message.length() * 10);
+  Serial.println(message);
+  delay(message.length() * 1);
 }
 #endif
