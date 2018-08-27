@@ -337,10 +337,10 @@ bool check_interrupt() {
 
 bool _toggle(unsigned short pin) {
   if (read(pin)) {
-    return off(pin);
+    return power_control(pin, NULL, false);
   }
   else {
-    return on(pin);
+    return power_control(pin, NULL, true);
   }
 }
 #endif
