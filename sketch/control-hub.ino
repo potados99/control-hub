@@ -69,7 +69,7 @@ void setup() {
   Serial.begin(SERIAL_BAUDRATE);
   Serial.setTimeout(0);
 
-  Serial.println("Waiting for Raspberry Pi to send a signal...\n");
+  Serial.print("Waiting for Raspberry Pi to send a signal...\n");
 }
 
 void loop() {
@@ -91,7 +91,7 @@ void serial_recieve_task() {
       // Serial.print("T\n");
     }
     else {
-      Serial.print("F" + TERMINATE);
+      send("F" + TERMINATE);
     }
     Input = "";
     return; /* once LF came, return. */
@@ -204,13 +204,13 @@ bool power_control(unsigned short pin, int *pwmValp, bool power) {
   if (hasPwmState) {
     analogWrite(pin, (power) ? *pwmValp : 0);
     beep(1);
-    Serial.print("PWR CTRL SUC" + TERMINATE);
+    send("PWR CTRL SUC" + TERMINATE);
     return true;
   }
   else {
     digitalWrite(pin, power);
     beep(1);
-    if (read(pin)) Serial.print("PWR CTRL SUC" + TERMINATE);
+    if (read(pin)) send("PWR CTRL SUC" + TERMINATE);
     return (read(pin));
   }
 
@@ -233,7 +233,7 @@ bool pwm_control(unsigned short pin, int *pwmValp, String *args, int argStart) {
 
   analogWrite(pin, (*pwmValp) * PWM_VAL_RATE);
 
-  Serial.print("PWM CTRL SUC" + TERMINATE);
+  send("PWM CTRL SUC" + TERMINATE);
   return true;
 }
 
@@ -250,7 +250,7 @@ bool rapid_toggle(unsigned short pin, int *pwmValp, String *args, int argStart) 
 
   unsigned long startTime = millis();
 
-  Serial.print("RPD CTRL SUC" + TERMINATE);
+  send("RPD CTRL SUC" + TERMINATE);
 
   if (hasPwmState) {
     // PWM
@@ -306,7 +306,7 @@ bool status_return(unsigned short pin, int * pwmValp, String *args, int argStart
 
 bool power_return(unsigned short pin) {
   String outString = read(pin) ? "ON" : "OFF";
-  Serial.print(outString + TERMINATE);
+  send(outString + TERMINATE);
 
   return true;
 }
@@ -315,7 +315,7 @@ bool pwm_return(int *pwmValp) {
   if (pwmValp == NULL) return false;
 
   String outString = String(*pwmValp);
-  Serial.print(outString + TERMINATE);
+  send(outString + TERMINATE);
   return true;
 }
 
@@ -361,5 +361,10 @@ String split(String data, char separator, int index) {
   }
 
   return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
+}
+
+void send(String message) {
+  send(message + TERMINATE);
+  delay(message.length());
 }
 #endif
