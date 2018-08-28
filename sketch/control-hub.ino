@@ -374,7 +374,7 @@ void initial_serial_setup() {
 }
 #endif
 
-bool error(int beep) {
-  beep(beep);
+bool error(int beepCnt) {
+  beep(beepCnt);
   return false;
 }
