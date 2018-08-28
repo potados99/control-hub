@@ -399,6 +399,6 @@ void initial_serial_setup() {
 
   Serial.print("Waiting for Raspberry Pi to send a signal...");
 
-  beep(1O);
+  beep(10);
 }
 #endif
