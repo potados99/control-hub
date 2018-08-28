@@ -151,8 +151,8 @@ void beep_task() {
       // Turn on buzzer
       if (millis() - Buzzer.lastToggle > BUZ_OFF_TIME) {
         digitalWrite(BUZZER_CONTROL_PIN, HIGH);
-        BuzSt |= BUZ_IS_ON;
-        BuzLastToggle = millis();
+        Buzzer.states |= BUZ_IS_ON;
+        Buzzer.lastToggle = millis();
       }
     }
     else { /* When buzzer is on */
@@ -202,13 +202,13 @@ bool device_control(Device *device, String *args) {
     return rapid_toggle(device, args+1);
   }
   else if (*args == "BRT") { // PWM only
-    return pwm_control(device, ++args);
+    return pwm_control(device, args+1);
   }
   else if (*args == "SPD") { // PWM only
-    return pwm_control(device, ++args);
+    return pwm_control(device, args+1);
   }
   else if (*args == "ST") {
-    return status_return(device, ++args);
+    return status_return(device, args+1);
   }
   else {
     return error(2);
