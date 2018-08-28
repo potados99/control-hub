@@ -396,7 +396,7 @@ void initial_pin_setup() {
 void initial_serial_setup() {
   Serial.begin(SERIAL_BAUDRATE);
   Serial.setTimeout(0);
-  Serial.print("Waiting for Raspberry Pi to send a signal...\n");
+  Serial.print("Serial ready.\n");
 
   Feedback = true;
   beep(5);
