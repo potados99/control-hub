@@ -140,7 +140,7 @@ void serial_recieve_task() {
 void lit_button_input_task() {
   if (! digitalRead(LIT_BUTTON_PIN)) { /* Button is pushed */
     if ((~LitButton.states & BTN_IS_PUSHED) && (~LitButton.states & BTN_JUST_TOGGLED)) {
-      toggle(LitDevice);
+      toggle(&LitDevice);
     }
     LitButton.states |= BTN_IS_PUSHED; /* Add 0000 0001 */
     LitButton.states |= BTN_JUST_TOGGLED; /* Add 0000 0010 */
