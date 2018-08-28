@@ -284,7 +284,7 @@ bool power_return(Device *device) {
 }
 
 bool pwm_return(Device *device) {
-  String outString = String(device->pwmVal);
+  String outString = String((int)device->pwmVal);
   send(outString);
 
   return true;
