@@ -177,11 +177,11 @@ bool do_action(String incommingString) {
   if (incommingString == "") return error(3);
 
   String commands[PARAM_MAX];
-  for (int i = 0; i < PARAM_MAX; ++ i) { commands[i] = split(input, ' ', i); }
+  for (int i = 0; i < PARAM_MAX; ++ i) { commands[i] = split(incommingString, ' ', i); }
 
   for(int i = 0; i < NUMBER_OF_DEVICES; ++ i) {
     if (*commands == DeviceArray[i]->name) {
-      return device_control(DeviceArray[i], ++commands);
+      return device_control(DeviceArray[i], commands+1);
     }
   }
 
@@ -199,7 +199,7 @@ bool device_control(Device *device, String *args) {
     return power_control(device, false);
   }
   else if (*args == "RPD") {
-    return rapid_toggle(device, ++args);
+    return rapid_toggle(device, args+1);
   }
   else if (*args == "BRT") { // PWM only
     return pwm_control(device, ++args);
