@@ -63,7 +63,7 @@ typedef struct Button {
 typedef struct Notifier {
   char pin = 0;
   char states = 0;
-  unsigned int countRemain = 0;
+  unsigned long countRemain = 0;
   unsigned long lastToggle = 0;
 } Notifier;
 #endif
@@ -347,6 +347,8 @@ void initial_pin_setup() {
   for (unsigned register short i = 0; i < NUMBER_OF_DEVICES; ++ i) {
     pinMode(DeviceArray[i]->pin, OUTPUT);
   }
+
+  digitalWrite(Buzzer.pin, OUTPUT);
 }
 
 void initial_serial_setup() {
