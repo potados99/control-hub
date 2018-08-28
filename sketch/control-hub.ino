@@ -159,7 +159,7 @@ void beep_task() {
       // Turn off buzzer
       if (millis() - Buzzer.lastToggle > BUZ_ON_TIME) {
         digitalWrite(Buzzer.pin, LOW);
-        Buzzer.states &= ! BUZ_IS_ON;
+        Buzzer.states &= ~BUZ_IS_ON;
         Buzzer.lastToggle = millis();
         Buzzer.countRemain -= 1;
       }
