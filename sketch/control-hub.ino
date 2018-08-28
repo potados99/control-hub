@@ -236,7 +236,7 @@ bool fade_control(Device *device, String *args) {
   if (*args == "IN") {
     for(register short i = 0; i <= device->pwmVal; i += FADE_SPEED) {
       if (i > device->pwmVal) {
-        analogWrite(device->pin, device->pwmVal);
+        analogWrite(device->pin, device->pwmVal * PWM_VAL_RATE);
         break;
       }
       analogWrite(device->pin, i);
@@ -250,7 +250,7 @@ bool fade_control(Device *device, String *args) {
         analogWrite(device->pin, 0);
         break;
       }
-      analogWrite(device->pin, i);
+      analogWrite(device->pin, i * PWM_VAL_RATE);
       delay(1);
     }
     device->power = false;
