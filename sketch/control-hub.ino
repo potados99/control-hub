@@ -140,7 +140,7 @@ void beep_task() {
     if ((~Buzzer.states) & BUZ_IS_ON) { /* When buzzer is off */
       // Turn on buzzer
       if (millis() - Buzzer.lastToggle > BUZ_OFF_TIME) {
-        digitalWrite(BUZZER_CONTROL_PIN, HIGH);
+        digitalWrite(Buzzer.pin, HIGH);
         Buzzer.states |= BUZ_IS_ON;
         Buzzer.lastToggle = millis();
       }
