@@ -29,27 +29,23 @@ bool send_command(const char *command) {
   if (wlen != strlen(command)) ERROR("Error from writing.\n")
   tcdrain(fd);
 
-  usleep((strlen(command) + 10) * SLEEP_PER_CAHR);
-
   char buf[CMDBUFF_MAX];
   memset(buf, 0, CMDBUFF_MAX);
 
-  int n = read(fd, buf, CMDBUFF_MAX);
-  close(fd);
+  char *bufptr = buf; /* for count */
 
-  if (n == 0) return FALSE;
-
-  LOGF("Read [%s]\n", buf)
-
-  bool notEnded = TRUE;
-  for(unsigned register int i = 0; i < strlen(buf); ++ i) {
-    if (buf[i] == '\n')  {
-      notEnded = FALSE;
-      buf[i + 1] = 0x00;
+  /* read characters into our string buffer until we get a CR or NL */
+  while ((nbytes = read(fd, bufptr, sizeof(buf) + (buffer - bufptr) - 1)) > 0)
+  {
+    bufptr += nbytes;
+    if (bufptr[-1] == '\n' || bufptr[-1] == '\r') {
       break;
     }
-  }
-  if (notEnded) return FALSE;
+  } *bufptr = '\0';
+
+  close(fd);
+
+  LOGF("Read [%s]\n", buf)
 
   fprintf(stdout, "%s", buf); /* print only first line to console */
 
