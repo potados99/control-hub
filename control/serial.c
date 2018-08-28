@@ -35,25 +35,25 @@ bool send_command(const char *command) {
   memset(buf, 0, CMDBUFF_MAX);
 
   int n = read(fd, buf, CMDBUFF_MAX);
-
   close(fd);
+
+  if (n == 0) return FALSE;
 
   LOGF("Read [%s]\n", buf)
 
-
   bool notEnded = TRUE;
-  for(int i = 0; i < strlen(buf); ++ i) {
+  for(unsigned register int i = 0; i < strlen(buf); ++ i) {
     if (buf[i] == '\n')  {
       notEnded = FALSE;
       buf[i + 1] = 0x00;
+      break;
     }
   }
-
   if (notEnded) return FALSE;
 
   fprintf(stdout, "%s", buf); /* print only first line to console */
 
-  return (n > 0) ? TRUE : FALSE;
+  return TRUE;
 }
 
 
