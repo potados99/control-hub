@@ -324,7 +324,7 @@ bool read(unsigned short pin) {
 }
 
 bool read_pwm(unsigned short pin) {
-  return (bool)OC2B;
+  return (bool)OCR2B;
 }
 
 void beep(int howMany) {
