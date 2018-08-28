@@ -234,22 +234,24 @@ bool fade_control(Device *device, String *args) {
   if (*args == "") return error(3);
 
   if (*args == "IN") {
-    for(unsigned register short i = 0; i <= device->pwmVal; i += FADE_SPEED) {
+    for(register short i = 0; i <= device->pwmVal; i += FADE_SPEED) {
       if (i >= device->pwmVal) {
         analogWrite(device->pin, device->pwmVal);
         break;
       }
       analogWrite(device->pin, i);
+      delay(5);
     }
     device->power = true;
   }
   else if (*args == "OUT") {
-    for(unsigned register short i = device->pwmVal; i >= 0; i -= FADE_SPEED) {
+    for(register short i = device->pwmVal; i >= 0; i -= FADE_SPEED) {
       if (i < 0) {
         analogWrite(device->pin, 0);
         break;
       }
       analogWrite(device->pin, i);
+      delay(5);
     }
     device->power = false;
   }
