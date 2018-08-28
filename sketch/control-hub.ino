@@ -209,10 +209,10 @@ bool device_control(Device *device, String *args) {
     return power_control(device, false);
   }
   else if (*args == "RPD") {
-    return rapid_toggle(device, ++args));
+    return rapid_toggle(device, ++args);
   }
   else if (*args == "BRT") { // PWM only
-    return pwm_control(device, ++args));
+    return pwm_control(device, ++args);
   }
   else if (*args == "SPD") { // PWM only
     return pwm_control(device, ++args);
@@ -375,6 +375,6 @@ void initial_serial_setup() {
 #endif
 
 bool error(int beep) {
-  beep(beep)
+  beep(beep);
   return false;
 }
