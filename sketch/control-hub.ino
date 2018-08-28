@@ -33,6 +33,7 @@
 
 #define PWM_VAL_RATE 2.55
 #define RAPID_DELAY 50
+#define FADE_SPEED 1
 
 #define BTN_IS_PUSHED 0x01
 #define BTN_JUST_TOGGLED 0x02
@@ -196,6 +197,9 @@ bool device_control(Device *device, String *args) {
   else if (*args == "SPD") { // PWM only
     return pwm_control(device, args+1);
   }
+  else if (*args == "FADE") {
+    return fade_control(device, args+1);
+  }
   else if (*args == "ST") {
     return status_return(device, args+1);
   }
@@ -223,6 +227,37 @@ bool pwm_control(Device *device, String *args) {
   }
 
   return (device->pwmVal == inputInt);
+}
+
+bool fade_control(Device *device, String *args) {
+  // synchronous function. other tasks need to wait.
+  if (*args == "") return error(3);
+
+  if (*args == "IN") {
+    for(unsigned register short i = 0; i <= device->pwmVal; i += FADE_SPEED) {
+      if (i >= device->pwmVal) {
+        analogWrite(device->pin, device->pwmVal);
+        break;
+      }
+      analogWrite(device->pin, i);
+    }
+    device->power = true;
+  }
+  else if (*args == "OUT") {
+    for(unsigned register short i = device->pwmVal; i >= 0; i -= FADE_SPEED) {
+      if (i < 0) {
+        analogWrite(device->pin, 0);
+        break;
+      }
+      analogWrite(device->pin, i);
+    }
+    device->power = false;
+  }
+  else {
+    return error(2);
+  }
+
+  return true;
 }
 
 bool rapid_toggle(Device *device, String *args) {
