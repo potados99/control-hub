@@ -25,7 +25,7 @@
 #define TERMINATE_OPTIONAL ';'
 #define PARAM_MAX 3
 
-#define BUZZER_CONTROL_PIN 2
+#define BUZ_CONTROL_PIN 2
 #define LIT_BUTTON_PIN 19
 #define LIT_CONTROL_PIN 4
 #define LED_CONTROL_PIN 3
@@ -337,7 +337,7 @@ void initial_device_setup() {
 
   LitButton.pin = LIT_BUTTON_PIN;
 
-  Buzzer.pin = BUZZER_CONTROL_PIN;
+  Buzzer.pin = BUZ_CONTROL_PIN;
 }
 
 void initial_pin_setup() {
@@ -348,7 +348,7 @@ void initial_pin_setup() {
     pinMode(DeviceArray[i]->pin, OUTPUT);
   }
 
-  digitalWrite(Buzzer.pin, OUTPUT);
+  pinMode(Buzzer.pin, OUTPUT);
 }
 
 void initial_serial_setup() {
