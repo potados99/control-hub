@@ -44,21 +44,11 @@
 #define BUZ_ON_TIME 15 /* millis */
 #define BUZ_OFF_TIME 50
 
-#define HAS_POWER 0x01 // 2^0
-#define D1 0x02 // 2^1
-#define D2 0x04 // 2^2
-#define D4 0x08 // 2^3
-#define D4 0x10 // 2^4
-#define D5 0x20 // 2^5
-#define D6 0x40 // 2^6
-#define D7 0x80 // 2^7
-
 #define NUMBER_OF_DEVICES 3
 #endif
 
 
 #ifdef STRUCT_DEFINITIONS
-
 typedef struct Device {
   String name = "";
   char pin = 0;
@@ -187,10 +177,10 @@ bool do_action(String incommingString) {
   if (incommingString == "") return error(3);
 
   String commands[PARAM_MAX];
-  for (int i = argStart; i < PARAM_MAX; ++ i) { commands[i] = split(input, ' ', i); }
+  for (int i = 0; i < PARAM_MAX; ++ i) { commands[i] = split(input, ' ', i); }
 
   for(int i = 0; i < NUMBER_OF_DEVICES; ++ i) {
-    if (*commands == DeviceArray[i].name) {
+    if (*commands == DeviceArray[i]->name) {
       return device_control(DeviceArray[i], ++commands);
     }
   }
