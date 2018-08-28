@@ -67,7 +67,7 @@ typedef struct Notifier {
   char states = 0x00;
   unsigned int countRemain = 0;
   unsigned long lastToggle = 0;
-} Notifier
+} Notifier;
 #endif
 
 
