@@ -179,9 +179,9 @@ bool do_action(String incommingString) {
     }
   }
 
-  if (*commands == "STALL") {
-    return device_control(DeviceArray[i], commands+1);
-  }
+  //if (*commands == "STALL") {
+  //  return device_control(DeviceArray[i], commands+1);
+  //}
 
   return error(2);
 }
