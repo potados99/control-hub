@@ -10,11 +10,13 @@
 
 ///////// Compile options //////////
 #define CONSTANTS
+#define STRUCT_DEFINITIONS
 #define GLOBAL_VARIABLES
 #define DEFAULT_FUNCTIONS
 #define TASK_FUNCTIONS
 #define HW_CONTROL_FUNCTIONS
 #define HELPER_FUNCTIONS
+#define INITIAL_SETUP
 ////////////////////////////////////
 
 
@@ -41,6 +43,41 @@
 #define BUZ_IS_ON 0x01
 #define BUZ_ON_TIME 15 /* millis */
 #define BUZ_OFF_TIME 50
+
+#define HAS_POWER 0x01 // 2^0
+#define D1 0x02 // 2^1
+#define D2 0x04 // 2^2
+#define D4 0x08 // 2^3
+#define D4 0x10 // 2^4
+#define D5 0x20 // 2^5
+#define D6 0x40 // 2^6
+#define D7 0x80 // 2^7
+
+#define NUMBER_OF_DEVICES 3
+#endif
+
+
+#ifdef STRUCT_DEFINITIONS
+
+typedef struct Device {
+  String name = "";
+  char pin = 0;
+  char pwmVal = 100;
+  bool power = false;
+} Device;
+
+typedef struct Button {
+  char pin = 0;
+  char states = 0x00;
+  unsigned long lastToggle = 0;
+} Button;
+
+typedef struct Notifier {
+  char pin = 0;
+  char states = 0x00;
+  unsigned int countRemain = 0;
+  unsigned long lastToggle = 0;
+} Notifier
 #endif
 
 
@@ -54,22 +91,22 @@ char BuzSt = 0;
 int BuzCnt = 0;
 unsigned long BuzLastToggle = 0;
 
-int LedBrightness = 100;
+Device *DeviceArray[NUMBER_OF_DEVICES];
+
+Device LitDevice;
+Device LedDevice;
+Device FanDevice;
+
+Button LitButton;
+Notifier Buzzer;
 #endif
 
 
 #ifdef DEFAULT_FUNCTIONS
 void setup() {
-  pinMode(LIT_BUTTON_PIN, INPUT);
-  digitalWrite(LIT_BUTTON_PIN, HIGH);
-  pinMode(LIT_CONTROL_PIN, OUTPUT);
-  pinMode(BUZZER_CONTROL_PIN, OUTPUT);
-  pinMode(LED_CONTROL_PIN, OUTPUT);
-
-  Serial.begin(SERIAL_BAUDRATE);
-  Serial.setTimeout(0);
-
-  Serial.print("Waiting for Raspberry Pi to send a signal...");
+  initial_pin_setup();
+  initial_device_setup();
+  initial_serial_setup();
 }
 
 void loop() {
@@ -102,27 +139,27 @@ void serial_recieve_task() {
 
 void lit_button_input_task() {
   if (! digitalRead(LIT_BUTTON_PIN)) { /* Button is pushed */
-    if ((~BtnSt & BTN_IS_PUSHED) && (~BtnSt & BTN_JUST_TOGGLED)) {
-      _toggle(LIT_CONTROL_PIN);
+    if ((~LitButton.states & BTN_IS_PUSHED) && (~LitButton.states & BTN_JUST_TOGGLED)) {
+      toggle(LitDevice);
     }
-    BtnSt |= BTN_IS_PUSHED; /* Add 0000 0001 */
-    BtnSt |= BTN_JUST_TOGGLED; /* Add 0000 0010 */
-    BtnLastToggle = millis();
+    LitButton.states |= BTN_IS_PUSHED; /* Add 0000 0001 */
+    LitButton.states |= BTN_JUST_TOGGLED; /* Add 0000 0010 */
+    LitButton.lastToggle = millis();
     return;
   }
   else {
-    BtnSt &= ~BTN_IS_PUSHED; /* Subtract 0000 0001 */
+    LitButton.states &= ~BTN_IS_PUSHED; /* Subtract 0000 0001 */
   }
 
-  if (~BtnSt & BTN_JUST_TOGGLED) return;
-  if (millis() - BtnLastToggle >= BUZ_PREVENT_BOUNCE_TIME) BtnSt &= ~BTN_JUST_TOGGLED;
+  if (~LitButton.states & BTN_JUST_TOGGLED) return;
+  if (millis() - LitButton.lastToggle >= BUZ_PREVENT_BOUNCE_TIME) LitButton.states &= ~BTN_JUST_TOGGLED;
 }
 
 void beep_task() {
-  if (BuzCnt > 0) {
-    if ((! BuzSt) & BUZ_IS_ON) { /* When buzzer is off */
+  if (Buzzer.countRemain > 0) {
+    if ((~Buzzer.states) & BUZ_IS_ON) { /* When buzzer is off */
       // Turn on buzzer
-      if (millis() - BuzLastToggle > BUZ_OFF_TIME) {
+      if (millis() - Buzzer.lastToggle > BUZ_OFF_TIME) {
         digitalWrite(BUZZER_CONTROL_PIN, HIGH);
         BuzSt |= BUZ_IS_ON;
         BuzLastToggle = millis();
@@ -130,17 +167,16 @@ void beep_task() {
     }
     else { /* When buzzer is on */
       // Turn off buzzer
-      if (millis() - BuzLastToggle > BUZ_ON_TIME) {
-        digitalWrite(BUZZER_CONTROL_PIN, LOW);
-        BuzSt &= ! BUZ_IS_ON;
-        BuzLastToggle = millis();
-
-        BuzCnt -= 1;
+      if (millis() - Buzzer.lastToggle > BUZ_ON_TIME) {
+        digitalWrite(Buzzer.pin, LOW);
+        Buzzer.states &= ! BUZ_IS_ON;
+        Buzzer.lastToggle = millis();
+        Buzzer.countRemain -= 1;
       }
     }
   }
   else {
-    BuzCnt = 0;
+    Buzzer.countRemain = 0;
   }
 }
 #endif
@@ -148,203 +184,133 @@ void beep_task() {
 
 #ifdef HW_CONTROL_FUNCTIONS
 bool do_action(String incommingString) {
-  if (incommingString == "") return false;
+  if (incommingString == "") return error(3);
 
-  int argStart = 0;
   String commands[PARAM_MAX];
-  for (int i = argStart; i < PARAM_MAX; ++ i) { commands[i] = split(incommingString, ' ', i); }
+  for (int i = argStart; i < PARAM_MAX; ++ i) { commands[i] = split(input, ' ', i); }
 
-  if (commands[argStart] == "LIT") {
-    return device_control(LIT_CONTROL_PIN, NULL, commands, argStart + 1);
+  for(int i = 0; i < NUMBER_OF_DEVICES; ++ i) {
+    if (*commands == DeviceArray[i].name) {
+      return device_control(DeviceArray[i], ++commands);
+    }
   }
-  else if (commands[argStart] == "LED") {
-    return device_control(LED_CONTROL_PIN, &LedBrightness, commands, argStart + 1);
+
+  beep(2);
+  return false;
+}
+
+bool device_control(Device *device, String *args) {
+  if (*args == "") return error(3);
+
+  if (*args == "ON") {
+    return power_control(device, true);
   }
-  else if (commands[argStart] == "FAN") {
-    return device_control(FAN_CONTROL_PIN, NULL, commands, argStart + 1);
+  else if (*args == "OFF") {
+    return power_control(device, false);
+  }
+  else if (*args == "RPD") {
+    return rapid_toggle(device, ++args));
+  }
+  else if (*args == "BRT") { // PWM only
+    return pwm_control(device, ++args));
+  }
+  else if (*args == "SPD") { // PWM only
+    return pwm_control(device, ++args);
+  }
+  else if (*args == "ST") {
+    return status_return(device, ++args);
   }
   else {
-    return false;
+    return error(2);
   }
 }
 
-bool device_control(unsigned short pin, int *pwmValp, String *args, int argStart) {
-  if (args[argStart] == "") {
-    beep(2);
-    return false;
-  }
-
-  if (args[argStart] == "ON") {
-    return power_control(pin, pwmValp, true);
-  }
-  else if (args[argStart] == "OFF") {
-    return power_control(pin, pwmValp, false);
-  }
-  else if (args[argStart] == "RPD") {
-    return rapid_toggle(pin, pwmValp, args, argStart + 1);
-  }
-  else if (args[argStart] == "BRT") { // PWM only
-    return pwm_control(pin, pwmValp, args, argStart + 1);
-  }
-  else if (args[argStart] == "SPD") { // PWM only
-    return pwm_control(pin, pwmValp, args, argStart + 1);
-  }
-  else if (args[argStart] == "ST") {
-    return status_return(pin, pwmValp, args, argStart + 1);
-  }
-  else {
-    return false;
-  }
+bool power_control(Device *device, bool power) {
+  analogWrite(device->pin, (device->power = power) ? (device->pwmVal * PWM_VAL_RATE) : 0);
+  if (device->pwmVal == 100) beep(1);
+  return (device->power == power);
 }
 
-bool power_control(unsigned short pin, int *pwmValp, bool power) {
-  bool hasPwmState = (pwmValp != NULL);
+bool pwm_control(Device *device, String *args) {
+  if (*args == "") return error(3);
 
-  if (hasPwmState) {
-    analogWrite(pin, (power) ? *pwmValp : 0);
-    beep(1);
-    return true;
+  int inputInt = (*args).toInt(); /* 0 to 100 val */
+  if ((inputInt < 0) || (inputInt > 100)) return error(2);
+
+  device->pwmVal = inputInt;
+
+  if (device->power) {
+    power_control(device, true);
   }
-  else {
-    digitalWrite(pin, power);
-    beep(1);
-    return (read(pin) == power);
-  }
-
-}
-
-bool pwm_control(unsigned short pin, int *pwmValp, String *args, int argStart) {
-  if (args[argStart] == "") {
-    beep(2);
-    return false;
-  }
-  if (pwmValp == NULL) return false;
-
-  int inputInt = args[argStart].toInt(); /* 0 to 100 val */
-  if ((inputInt < 0) || (inputInt > 100)) {
-    beep(2);
-    return false;
-  }
-
-  *pwmValp = inputInt;
-
-  analogWrite(pin, (*pwmValp) * PWM_VAL_RATE);
 
   return true;
 }
 
-bool rapid_toggle(unsigned short pin, int *pwmValp, String *args, int argStart) {
-  if (args[argStart] == "") {
-    beep(2);
-    return false;
-  }
+bool rapid_toggle(Device *device, String *args) {
+  if (*args == "") return error(3);
 
-  bool hasPwmState = (pwmValp != NULL);
-
-  int duration = args[argStart].toDouble() * 1000;
-  bool originState = read(pin);
+  bool originState = device->power;
 
   unsigned long startTime = millis();
+  unsigned long  duration = (*args).toDouble() * 1000;
 
-  if (hasPwmState) {
-    // PWM
-    for (;;) {
-      analogWrite(pin, *pwmValp);
-      delay(RAPID_DELAY);
-      analogWrite(pin, 0);
-      delay(RAPID_DELAY);
+  for (;;) {
+    power_control(device, true);
+    delay(RAPID_DELAY);
+    power_control(device, false);
+    delay(RAPID_DELAY);
 
-      if (check_interrupt()) break;
-      if (millis() - startTime > duration) break;
-    }
-
-    analogWrite(pin, (originState) ? *pwmValp : 0);
-  }
-  else {
-    // Just on/off
-    for (;;) {
-      digitalWrite(pin, HIGH);
-      delay(RAPID_DELAY);
-      digitalWrite(pin, LOW);
-      delay(RAPID_DELAY);
-
-      if (check_interrupt()) break;
-      if (millis() - startTime > duration) break;
-    }
-
-    digitalWrite(pin, originState);
+    if (check_interrupt()) break;
+    if (millis() - startTime > duration) break;
   }
 
-  return true;
+  return power_control(device, originState);
 }
 
-bool status_return(unsigned short pin, int *pwmValp, String *args, int argStart) {
-  if (args[argStart] == "") {
-    beep(2);
-    return false;
-  }
+bool status_return(Device *device, String *args) {
+  if (*args == "") return error(3);
 
-  if (args[argStart] == "PWR") {
-    return power_return(pin, pwmValp);
+  if (*args == "PWR") {
+    return power_return(device);
   }
-  else if (args[argStart] == "BRT") {
-    return pwm_return(pwmValp);
+  else if (*args == "BRT") {
+    return pwm_return(device);
   }
-  else if (args[argStart] == "SPD") {
-    return pwm_return(pwmValp);
+  else if (*args == "SPD") {
+    return pwm_return(device);
   }
   else {
     return false;
   }
+
 }
 
-bool power_return(unsigned short pin, int *pwmValp) {
-  bool hasPwmState = (pwmValp != NULL);
 
-  bool st = hasPwmState ? read_pwm(pin) : read(pin);
-
-  String outString = st ? "ON" : "OFF";
+bool power_return(Device *device) {
+  String outString = device->power ? "ON" : "OFF";
   send(outString);
 
   return true;
 }
 
-bool pwm_return(int *pwmValp) {
-  if (pwmValp == NULL) return false;
-
-  String outString = String(*pwmValp);
+bool pwm_return(Device *device) {
+  String outString = String(device->pwmVal);
   send(outString);
 
   return true;
-}
-
-
-bool read(unsigned short pin) {
-  return ((bool)bitRead(PORTD,pin));
-}
-
-bool read_pwm(unsigned short pin) {
-  return (bool)OCR2B;
 }
 
 void beep(int howMany) {
-  BuzCnt += howMany;
+  Buzzer.countRemain += howMany;
 }
-
 
 bool check_interrupt() {
   if (! Serial.available()) return false;
   return Serial.read() == INTERRUPT_CODE;
 }
 
-
-bool _toggle(unsigned short pin) {
-  if (read(pin)) {
-    return power_control(pin, NULL, false);
-  }
-  else {
-    return power_control(pin, NULL, true);
-  }
+bool toggle(Device *device) {
+  return power_control(device, !(device->power));
 }
 #endif
 
@@ -370,3 +336,45 @@ void send(String message) {
   Serial.print(message + TERMINATE);
 }
 #endif
+
+
+#ifdef INITIAL_SETUP
+void initial_pin_setup() {
+  pinMode(LIT_BUTTON_PIN, INPUT);
+  digitalWrite(LIT_BUTTON_PIN, HIGH);
+  pinMode(LIT_CONTROL_PIN, OUTPUT);
+  pinMode(BUZZER_CONTROL_PIN, OUTPUT);
+  pinMode(LED_CONTROL_PIN, OUTPUT);
+}
+
+void initial_device_setup() {
+  LitDevice.name = "LIT";
+  LitDevice.pin = LIT_CONTROL_PIN;
+
+  LedDevice.name = "LED";
+  LedDevice.pin = LED_CONTROL_PIN;
+
+  FanDevice.name = "FAN";
+  FanDevice.pin = FAN_CONTROL_PIN;
+
+  DeviceArray[0] = &LitDevice;
+  DeviceArray[1] = &LedDevice;
+  DeviceArray[2] = &FanDevice;
+
+  LitButton.pin = LIT_BUTTON_PIN;
+
+  Buzzer.pin = BUZZER_CONTROL_PIN;
+}
+
+void initial_serial_setup() {
+  Serial.begin(SERIAL_BAUDRATE);
+  Serial.setTimeout(0);
+
+  Serial.print("Waiting for Raspberry Pi to send a signal...");
+}
+#endif
+
+bool error(int beep) {
+  beep(beep)
+  return false;
+}
