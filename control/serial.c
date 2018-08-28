@@ -33,9 +33,10 @@ bool send_command(const char *command) {
   memset(buf, 0, CMDBUFF_MAX);
 
   char *bufptr = buf; /* for count */
+  int nbytes = 0;
 
   /* read characters into our string buffer until we get a CR or NL */
-  while ((nbytes = read(fd, bufptr, sizeof(buf) + (buffer - bufptr) - 1)) > 0)
+  while ((nbytes = read(fd, bufptr, sizeof(buf) + (buf - bufptr) - 1)) > 0)
   {
     bufptr += nbytes;
     if (bufptr[-1] == '\n' || bufptr[-1] == '\r') {
