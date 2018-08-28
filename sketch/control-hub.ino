@@ -7,7 +7,6 @@
 //
 //
 
-
 ///////// Compile options //////////
 #define CONSTANTS
 #define STRUCT_DEFINITIONS
@@ -19,13 +18,12 @@
 #define INITIAL_SETUP
 ////////////////////////////////////
 
-
 #ifdef CONSTANTS
+#define SERIAL_BAUDRATE 9600
 #define INTERRUPT_CODE 27 /* esc */
 #define TERMINATE '\n'
 #define TERMINATE_OPTIONAL ';'
-#define PWM_VAL_RATE 2.55
-#define RAPID_DELAY 50
+#define PARAM_MAX 3
 
 #define BUZZER_CONTROL_PIN 2
 #define LIT_BUTTON_PIN 19
@@ -33,12 +31,12 @@
 #define LED_CONTROL_PIN 3
 #define FAN_CONTROL_PIN 5
 
-#define SERIAL_BAUDRATE 9600
-#define PARAM_MAX 3
-#define BUZ_PREVENT_BOUNCE_TIME 120 /* millis*/
+#define PWM_VAL_RATE 2.55
+#define RAPID_DELAY 50
 
 #define BTN_IS_PUSHED 0x01
 #define BTN_JUST_TOGGLED 0x02
+#define BTN_PREVENT_BOUNCE_TIME 120 /* millis*/
 
 #define BUZ_IS_ON 0x01
 #define BUZ_ON_TIME 15 /* millis */
@@ -58,13 +56,13 @@ typedef struct Device {
 
 typedef struct Button {
   char pin = 0;
-  char states = 0x00;
+  char states = 0;
   unsigned long lastToggle = 0;
 } Button;
 
 typedef struct Notifier {
   char pin = 0;
-  char states = 0x00;
+  char states = 0;
   unsigned int countRemain = 0;
   unsigned long lastToggle = 0;
 } Notifier;
@@ -74,15 +72,7 @@ typedef struct Notifier {
 #ifdef GLOBAL_VARIABLES /* thread safe */
 String Input; /* serial input */
 
-char BtnSt = 0;
-unsigned long BtnLastToggle = 0;
-
-char BuzSt = 0;
-int BuzCnt = 0;
-unsigned long BuzLastToggle = 0;
-
 Device *DeviceArray[NUMBER_OF_DEVICES];
-
 Device LitDevice;
 Device LedDevice;
 Device FanDevice;
@@ -94,8 +84,8 @@ Notifier Buzzer;
 
 #ifdef DEFAULT_FUNCTIONS
 void setup() {
-  initial_pin_setup();
   initial_device_setup();
+  initial_pin_setup();
   initial_serial_setup();
 }
 
@@ -142,7 +132,7 @@ void lit_button_input_task() {
   }
 
   if (~LitButton.states & BTN_JUST_TOGGLED) return;
-  if (millis() - LitButton.lastToggle >= BUZ_PREVENT_BOUNCE_TIME) LitButton.states &= ~BTN_JUST_TOGGLED;
+  if (millis() - LitButton.lastToggle >= BTN_PREVENT_BOUNCE_TIME) LitButton.states &= ~BTN_JUST_TOGGLED;
 }
 
 void beep_task() {
@@ -177,16 +167,15 @@ bool do_action(String incommingString) {
   if (incommingString == "") return error(3);
 
   String commands[PARAM_MAX];
-  for (int i = 0; i < PARAM_MAX; ++ i) { commands[i] = split(incommingString, ' ', i); }
+  for (unsigned register short i = 0; i < PARAM_MAX; ++ i) { commands[i] = split(incommingString, ' ', i); }
 
-  for(int i = 0; i < NUMBER_OF_DEVICES; ++ i) {
+  for (unsigned register short i = 0; i < NUMBER_OF_DEVICES; ++ i) {
     if (*commands == DeviceArray[i]->name) {
       return device_control(DeviceArray[i], commands+1);
     }
   }
 
-  beep(2);
-  return false;
+  return error(2);
 }
 
 bool device_control(Device *device, String *args) {
@@ -230,10 +219,10 @@ bool pwm_control(Device *device, String *args) {
   device->pwmVal = inputInt;
 
   if (device->power) {
-    power_control(device, true);
+    return (device->pwmVal == inputInt) && power_control(device, true);
   }
 
-  return true;
+  return (device->pwmVal == inputInt);
 }
 
 bool rapid_toggle(Device *device, String *args) {
@@ -270,11 +259,9 @@ bool status_return(Device *device, String *args) {
     return pwm_return(device);
   }
   else {
-    return false;
+    return error(2);
   }
-
 }
-
 
 bool power_return(Device *device) {
   String outString = device->power ? "ON" : "OFF";
@@ -290,10 +277,6 @@ bool pwm_return(Device *device) {
   return true;
 }
 
-void beep(int howMany) {
-  Buzzer.countRemain += howMany;
-}
-
 bool check_interrupt() {
   if (! Serial.available()) return false;
   return Serial.read() == INTERRUPT_CODE;
@@ -301,6 +284,10 @@ bool check_interrupt() {
 
 bool toggle(Device *device) {
   return power_control(device, !(device->power));
+}
+
+void beep(int howMany) {
+  Buzzer.countRemain += howMany;
 }
 #endif
 
@@ -311,7 +298,7 @@ String split(String data, char separator, int index) {
   int strIndex[] = {0, -1};
   int maxIndex = data.length()-1;
 
-  for(int i=0; i<=maxIndex && found<=index; i++){
+  for (unsigned register short i=0; i<=maxIndex && found<=index; i++){
     if(data.charAt(i)==separator || i==maxIndex){
       found++;
       strIndex[0] = strIndex[1]+1;
@@ -325,19 +312,20 @@ String split(String data, char separator, int index) {
 void send(String message) {
   Serial.print(message + TERMINATE);
 }
+
+bool error(int beepCnt) {
+  beep(beepCnt);
+  return false;
+}
 #endif
 
 
 #ifdef INITIAL_SETUP
-void initial_pin_setup() {
-  pinMode(LIT_BUTTON_PIN, INPUT);
-  digitalWrite(LIT_BUTTON_PIN, HIGH);
-  pinMode(LIT_CONTROL_PIN, OUTPUT);
-  pinMode(BUZZER_CONTROL_PIN, OUTPUT);
-  pinMode(LED_CONTROL_PIN, OUTPUT);
-}
-
 void initial_device_setup() {
+  DeviceArray[0] = &LitDevice;
+  DeviceArray[1] = &LedDevice;
+  DeviceArray[2] = &FanDevice;
+
   LitDevice.name = "LIT";
   LitDevice.pin = LIT_CONTROL_PIN;
 
@@ -347,13 +335,18 @@ void initial_device_setup() {
   FanDevice.name = "FAN";
   FanDevice.pin = FAN_CONTROL_PIN;
 
-  DeviceArray[0] = &LitDevice;
-  DeviceArray[1] = &LedDevice;
-  DeviceArray[2] = &FanDevice;
-
   LitButton.pin = LIT_BUTTON_PIN;
 
   Buzzer.pin = BUZZER_CONTROL_PIN;
+}
+
+void initial_pin_setup() {
+  pinMode(LitButton.pin, INPUT);
+  digitalWrite(LitButton.pin, HIGH);
+
+  for (unsigned register short i = 0; i < NUMBER_OF_DEVICES; ++ i) {
+    pinMode(DeviceArray[i]->pin, OUTPUT);
+  }
 }
 
 void initial_serial_setup() {
@@ -363,8 +356,3 @@ void initial_serial_setup() {
   Serial.print("Waiting for Raspberry Pi to send a signal...");
 }
 #endif
-
-bool error(int beepCnt) {
-  beep(beepCnt);
-  return false;
-}
