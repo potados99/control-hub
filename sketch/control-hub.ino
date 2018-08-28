@@ -64,7 +64,7 @@ typedef struct Button {
 typedef struct Notifier {
   char pin = 0;
   char states = 0;
-  unsigned long countRemain = 0;
+  unsigned int countRemain = 0;
   unsigned long lastToggle = 0;
 } Notifier;
 #endif
