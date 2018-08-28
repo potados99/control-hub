@@ -80,6 +80,8 @@ Device FanDevice;
 
 Button LitButton;
 Notifier Buzzer;
+
+bool Feedback = false;
 #endif
 
 
@@ -106,12 +108,13 @@ void serial_recieve_task() {
 
   if ((recieved == TERMINATE) || (recieved == TERMINATE_OPTIONAL)) {
     if (do_action(Input)) {
-      Serial.write("T\n");
+      if (Feedback) Serial.write("T\n");
     }
     else {
-      Serial.write("F\n");
+      if (Feedback) Serial.write("F\n");
     }
     Input = "";
+    Feedback = true;
     return; /* once LF came, return. */
   }
 
@@ -174,6 +177,10 @@ bool do_action(String incommingString) {
     if (*commands == DeviceArray[i]->name) {
       return device_control(DeviceArray[i], commands+1);
     }
+  }
+
+  if (*commands == "STALL") {
+    return device_control(DeviceArray[i], commands+1);
   }
 
   return error(2);
@@ -303,6 +310,7 @@ bool status_return(Device *device, String *args) {
 bool power_return(Device *device) {
   String outString = device->power ? "ON" : "OFF";
   send(outString);
+  Feedback = false;
 
   return true;
 }
@@ -310,6 +318,7 @@ bool power_return(Device *device) {
 bool pwm_return(Device *device) {
   String outString = String((int)device->pwmVal);
   send(outString);
+  Feedback = false;
 
   return true;
 }
