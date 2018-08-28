@@ -179,10 +179,6 @@ bool do_action(String incommingString) {
     }
   }
 
-  //if (*commands == "STALL") {
-  //  return device_control(DeviceArray[i], commands+1);
-  //}
-
   return error(2);
 }
 
@@ -402,5 +398,7 @@ void initial_serial_setup() {
   Serial.setTimeout(0);
 
   Serial.print("Waiting for Raspberry Pi to send a signal...");
+
+  beep(1O);
 }
 #endif
