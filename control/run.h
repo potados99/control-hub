@@ -1,6 +1,7 @@
 #ifndef run_h
 #define run_h
 
+#include <stdio.h>
 #include <unistd.h>
 #include "macros.h"
 
