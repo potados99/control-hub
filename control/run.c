@@ -26,6 +26,18 @@ void all_done() {
   dequeue_pid(getpid());
 }
 
+int read_pid (char *pidfile)
+{
+  FILE *f;
+  int pid;
+
+  if (!(f=fopen(pidfile,"r")))
+    return 0;
+  fscanf(f,"%d", &pid);
+  fclose(f);
+  return pid;
+}
+
 void dequeue_pid(int pid) {
   FILE *f;
   int fd;
