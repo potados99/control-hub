@@ -4,7 +4,14 @@
 #include <unistd.h>
 #include <string.h>
 #include "macros.h"
+#include <sys/stat.h>
+#include <sys/file.h>
+#include <string.h>
+#include <errno.h>
+#include <signal.h>
+#include <fcntl.h>
 
+#include "srUtils.h"
 #define PIDFILE_PATH "/run/control/control.pid"
 #define PIDFILE_BUF_MAX 128
 
@@ -14,6 +21,8 @@ void all_done();
 
 int read_pid();
 
-void dequeue_pid();
+int write_pid (char *pidfile)
+
+void dequeue_pid(int pid);
 
 #endif
