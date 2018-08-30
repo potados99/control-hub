@@ -75,9 +75,9 @@ void dequeue_pid(int pid) {
       pfbuff += strlen(pfbuff);
     }
     else {
-      printf("Can't write pid , %s.\n", errStr);
+      printf("Can't write pid , %s.\n", "d");
       close(fd);
-      return 0;
+      return;
     }
   }
 

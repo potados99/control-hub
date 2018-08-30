@@ -1,6 +1,9 @@
 #ifndef marcos_h
 #define marcos_h
 
+#include <stdio.h>
+#include <stdlib.h>
+
 typedef enum bool {
 	TRUE = 1,
 	FALSE = 0
