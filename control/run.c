@@ -108,7 +108,7 @@ void dequeue_pid(int pid) {
 
   // read file and save it to buffer
   if (fread(fbuff, fileSize, 1, f) < 1) {
-    close(fd);
+    fclose(f);
     ERROR("Config: Failed reading file\n")
   }
 
@@ -124,14 +124,14 @@ void dequeue_pid(int pid) {
     }
     else {
       printf("Can't write pid , %s.\n", "d");
-      close(fd);
+      fclose(f);
       return;
     }
   }
 
 
   fflush(f);
-  close(fd);
+  fclose(f);
 
 
 }
