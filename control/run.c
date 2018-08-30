@@ -38,8 +38,7 @@ int read_pid (char *pidfile)
   return pid;
 }
 
-int write_pid (char *pidfile)
-{
+int write_pid (char *pidfile) {
   FILE *f;
   int fd;
   int pid;
@@ -70,8 +69,7 @@ int write_pid (char *pidfile)
   pid = getpid();
   if (!fprintf(f,"%d\n", pid)) {
       char errStr[1024];
-      rs_strerror_r(errno, errStr, sizeof(errStr));
-      printf("Can't write pid , %s.\n", errStr);
+
       close(fd);
       return 0;
   }
@@ -80,8 +78,7 @@ int write_pid (char *pidfile)
 #if HAVE_FLOCK
   if (flock(fd, LOCK_UN) == -1) {
       char errStr[1024];
-      rs_strerror_r(errno, errStr, sizeof(errStr));
-      printf("Can't unlock pidfile %s, %s.\n", pidfile, errStr);
+
       close(fd);
       return 0;
   }
@@ -98,13 +95,13 @@ void dequeue_pid(int pid) {
   char *pfbuff;
 
   if ((f = fopen(PIDFILE_PATH, "r+")) == NULL) {
-    fprintf(stderr, "Can't open or create %s.\n", pidfile);
+    fprintf(stderr, "Can't open or create %s.\n", PIDFILE_PATH);
     return 0;
   }
 
   // get file size
   fseek(f, 0, SEEK_END);
-  fileSize = (int)ftell(fp);
+  fileSize = (int)ftell(f);
   fseek(f, 0, SEEK_SET);
 
   if (fileSize == 0) return; /* There were no pid file. */
