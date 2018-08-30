@@ -5,7 +5,7 @@
 #define PORT_KEY "port"
 #define BDRT_KEY "baudrate"
 
-#define MAX_RETRY 100000
+#define MAX_RETRY 1000000
 
 bool send_command(const char *command) {
   // getting port from setting
