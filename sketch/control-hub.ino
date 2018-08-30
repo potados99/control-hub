@@ -113,8 +113,10 @@ void serial_recieve_task() {
     else {
       if (Feedback) Serial.write("F\n");
     }
+    
     Input = "";
     Feedback = true;
+
     return; /* once LF came, return. */
   }
 

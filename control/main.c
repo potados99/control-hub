@@ -1,6 +1,10 @@
 #include "serial.h"
+#include "run.h"
 
 int main(int argc, const char *argv[]) {
+
+
+
 	if (argc < ARGS_MAX - 1) {
 		fprintf(stderr, "Arguments not enough.\n");
 		fprintf(stderr, "Usage: $EXCUTABLE [arg1] ...\n");
