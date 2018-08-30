@@ -5,43 +5,44 @@
 #define PORT_KEY "port"
 #define BDRT_KEY "baudrate"
 
-#define SLEEP_PER_CAHR 2000
-
 bool send_command(const char *command) {
-  char port[SETTING_LENG_MAX] = {0,};
+  // getting port from setting
+  char port[SETTING_LENG_MAX];
+  memset(port, 0, sizeof(port));
   get_setting(SECTION_KEY, PORT_KEY, port);
 
-  int baudrate = 0;
+  // getting baudrate from setting
   char baudrateStr[SETTING_LENG_MAX] = {0,};
+  memset(baudrateStr, 0, sizeof(baudrateStr));
   get_setting(SECTION_KEY, BDRT_KEY, baudrateStr);
-  baudrate = atoi(baudrateStr);
+  int baudrate = atoi(baudrateStr);
+  if (baudrate == 0) ERROR("Error from baudrate. Not a number.")
 
+  // opening port
   int fd = open(port, O_RDWR | O_NOCTTY | O_SYNC);
   if (fd < 0) ERROR("Error opening port.\n")
 
-  set_interface_attribs (fd, baudrate, 0);  /* set speed to 9,600 bps, 8n1 (no parity) */
+  set_interface_attribs (fd, baudrate, 0); /* set speed to 9,600 bps, 8n1 (no parity) */
   set_blocking (fd, 0);
 
   LOGF("Write [%s]\n", command)
 
-  /* simple output */
+  // writing
   int wlen = write(fd, command, strlen(command));
   if (wlen != strlen(command)) ERROR("Error from writing.\n")
   tcdrain(fd);
 
+  // ready for read
   char buf[CMDBUFF_MAX];
-  memset(buf, 0, CMDBUFF_MAX);
-
+  memset(buf, 0, sizeof(buf));
   char *bufptr = buf; /* for count */
   int nbytes = 0;
 
-  /* read characters into our string buffer until we get a CR or NL */
-  while ((nbytes = read(fd, bufptr, sizeof(buf) + (buf - bufptr) - 1)) > 0)
+  // read until '\n' or '\r'
+  while ((nbytes = read(fd, bufptr, sizeof(buf) - (bufptr - buf) - 1)) > 0)
   {
     bufptr += nbytes;
-    if (bufptr[-1] == '\n' || bufptr[-1] == '\r') {
-      break;
-    }
+    if (bufptr[-1] == '\n' || bufptr[-1] == '\r') break;
   } *bufptr = '\0';
 
   close(fd);
