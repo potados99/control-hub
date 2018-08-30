@@ -2,10 +2,15 @@
 #define run_h
 
 #include "macros.h"
+#include "rsyslog.h"
 
-int get_pid();
+#define PIDFILE_PATH "/run/control/control.pid"
+#define PIDFILE_BUF_MAX 128
 
-int fread_pid();
-void fwrite_pid(int pid);
+void continue_when_possible();
+
+void all_done();
+
+void dequeue_pid();
 
 #endif
