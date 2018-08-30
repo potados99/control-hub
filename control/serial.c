@@ -5,6 +5,8 @@
 #define PORT_KEY "port"
 #define BDRT_KEY "baudrate"
 
+#define MAX_RETRY 100
+
 bool send_command(const char *command) {
   // getting port from setting
   char port[SETTING_LENG_MAX];
@@ -19,8 +21,11 @@ bool send_command(const char *command) {
   if (baudrate == 0) ERROR("Error from baudrate. Not a number.")
 
   // opening port
-  int fd = open(port, O_RDWR | O_NOCTTY | O_SYNC);
-  if (fd < 0) ERROR("Error opening port.\n")
+  int fd = 0;
+  int retryCnt = 0;
+  while ((fd = open(port, O_RDWR | O_NOCTTY | O_SYNC)) < 0) {
+    if (retryCnt ++ > MAX_RETRY) ERROR("Error opening port. Max retry exceeded.")
+  }
 
   set_interface_attribs (fd, baudrate, 0); /* set speed to 9,600 bps, 8n1 (no parity) */
   set_blocking (fd, 0);
