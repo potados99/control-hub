@@ -1,6 +1,5 @@
 #include "serial.h"
 #include "run.h"
-#include <signal.h> //  our new library
 
 volatile sig_atomic_t flag = 0;
 
