@@ -1,5 +1,5 @@
 #ifndef serial_h
-#define seiral_h
+#define serial_h
 
 #include <errno.h>
 #include <stdio.h>

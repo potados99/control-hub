@@ -11,7 +11,7 @@
 #include <signal.h>
 #include <fcntl.h>
 
-#define PIDFILE_PATH "/run/control/control.pid"
+#define PIDFILE_PATH "/var/run/control/control.pid"
 #define PIDFILE_BUF_MAX 128
 
 void continue_when_possible();

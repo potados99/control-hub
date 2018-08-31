@@ -2,6 +2,22 @@
 #include "run.h"
 
 int main(int argc, const char *argv[]) {
+	LOG("Flag 1\n")
+
+	continue_when_possible();
+
+	LOG("Flag suc-continue\n")
+
+int cnt = 0;
+	for (;;) {
+		printf("%s, %d\n", "doing my job!", cnt);
+		usleep(1000 * 1000 * 1);
+
+		if (cnt++ > 10) {
+			dequeue_pid(getpid());
+			return 0;
+		}
+	}
 
 
 
@@ -29,6 +45,8 @@ int main(int argc, const char *argv[]) {
 
 	bool success = send_command(cmdBuff);
 	if (!success) ERROR("Faild getting response.\n")
+
+	dequeue_pid(getpid());
 
 	return success;
 }

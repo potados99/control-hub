@@ -10,6 +10,8 @@ typedef enum bool {
 } bool;
 
 #define ERROR(x) { fprintf(stderr, "[ERROR] %s", x); exit(1); }
+#define ERRORF(x, ...) { fprintf(stderr, "[ERROR] ");  fprintf(stderr, x, __VA_ARGS__); exit(1); }
+
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 
 #ifdef VERBOSE

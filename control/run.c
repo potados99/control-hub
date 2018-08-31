@@ -1,12 +1,22 @@
 #include "run.h"
 
 void continue_when_possible() {
+  LOG("Flag 2\n")
+
   int pid = read_pid(PIDFILE_PATH);
+  LOGF("Flag 3: pid read: %d\n", pid)
+
 
   for(;;) {
+    usleep(1000 * 1000 * 1);
+    LOG("Flag 4: in loop\n")
+
     if (pid == 0) {
       // No pid file. I am the only one. So, create one and continue.
       write_pid(PIDFILE_PATH);
+      LOG("Flag suc: write_pid\n")
+
+      printf("pass!\n");
       return;
     }
     else {
@@ -17,6 +27,8 @@ void continue_when_possible() {
       }
       else {
         // Wait.
+        LOG("Flag Wait!\n")
+
       }
     } /* if pid end */
   } /* for end */
@@ -32,7 +44,7 @@ int read_pid (char *pidfile)
   int pid;
 
   if (!(f=fopen(pidfile,"r")))
-    return 0;
+  return 0;
   fscanf(f,"%d", &pid);
   fclose(f);
   return pid;
@@ -44,45 +56,18 @@ int write_pid (char *pidfile) {
   int pid;
 
   if ( ((fd = open(pidfile, O_RDWR|O_CREAT, 0644)) == -1)
-       || ((f = fdopen(fd, "r+")) == NULL) ) {
-      fprintf(stderr, "Can't open or create %s.\n", pidfile);
-      return 0;
+  || ((f = fdopen(fd, "r+")) == NULL) ) {
+    fprintf(stderr, "Can't open or create %s.\n", pidfile);
+    return 0;
   }
-
- /* It seems to be acceptable that we do not lock the pid file
-  * if we run under Solaris. In any case, it is highly unlikely
-  * that two instances try to access this file. And flock is really
-  * causing me grief on my initial steps on Solaris. Some time later,
-  * we might re-enable it (or use some alternate method).
-  * 2006-02-16 rgerhards
-  */
-
-#if HAVE_FLOCK
-  if (flock(fd, LOCK_EX|LOCK_NB) == -1) {
-      fscanf(f, "%d", &pid);
-      fclose(f);
-      printf("Can't lock, lock is held by pid %d.\n", pid);
-      return 0;
-  }
-#endif
 
   pid = getpid();
   if (!fprintf(f,"%d\n", pid)) {
-      char errStr[1024];
-
-      close(fd);
-      return 0;
+    close(fd);
+    return 0;
   }
+
   fflush(f);
-
-#if HAVE_FLOCK
-  if (flock(fd, LOCK_UN) == -1) {
-      char errStr[1024];
-
-      close(fd);
-      return 0;
-  }
-#endif
   close(fd);
 
   return pid;
@@ -96,7 +81,7 @@ void dequeue_pid(int pid) {
 
   if ((f = fopen(PIDFILE_PATH, "r+")) == NULL) {
     fprintf(stderr, "Can't open or create %s.\n", PIDFILE_PATH);
-    return 0;
+    return;
   }
 
   // get file size

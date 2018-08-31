@@ -1,6 +1,6 @@
 #include "setting.h"
 
-#define CONFIG_FILE_PATH "/home/potados/.control/config.txt"
+#define CONFIG_FILE_PATH ".control/config.txt"
 #define SECTION_OPEN '['
 #define SECTION_CLOSE ']'
 #define SPACE ' '
@@ -10,9 +10,19 @@
 void get_setting(const char *_section, const char *_key, char *_val_out) {
 	// read file
 	char fbuff[FILE_BUFFER_MAX];
-	memset (fbuff, 0, FILE_BUFFER_MAX);
+	memset(fbuff, 0, sizeof(fbuff));
 
-	int fsize = read_file(CONFIG_FILE_PATH, fbuff);
+	char pathBuf[SETTING_LENG_MAX];
+	memset(pathBuf, 0, sizeof(pathBuf));
+
+	struct passwd *pw = getpwuid(getuid());
+	const char *homedir = pw->pw_dir;
+
+	strcat(pathBuf, homedir);
+	strcat(pathBuf, "/");
+	strcat(pathBuf, CONFIG_FILE_PATH);
+
+	int fsize = read_file(pathBuf, fbuff);
 	int pos = 0;
 
 	bool inTargetSection = FALSE;
@@ -39,13 +49,13 @@ void get_setting(const char *_section, const char *_key, char *_val_out) {
 	printf("Key not found.\n");
 }
 
-int read_file(const char *_filePath, char *_file_out) {
+int read_file(char *_filePath, char *_file_out) {
 	// opening file for reading
 	FILE *fp;
 	fp = fopen(_filePath, "rb");
 
 	// if fopen returned NULL
-	if (fp == NULL) ERROR("Config: File doesn't exist\n");
+	if (fp == NULL) ERRORF("Config: File doesn't exist: %s\n", _filePath);
 
 	// get file size
 	fseek(fp, 0, SEEK_END);
