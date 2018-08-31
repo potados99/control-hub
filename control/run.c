@@ -60,7 +60,7 @@ void continue_when_possible(char *pidfile) {
     ///////////////////////////
     pidRead = read_pid(pidfile);
     if (pidRead == mypid) return; /* Yeah let's go. */
-    if (pidRead == 0) ERROR("continue_when_possible: pid file is gone.\n")
+    
   } /* End of for */
 }
 
