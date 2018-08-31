@@ -1,9 +1,9 @@
 #include "run.h"
 
-void continue_when_possible() {
+void continue_when_possible(char *pidfile) {
   LOG("Flag 2\n")
 
-  int pid = read_pid(PIDFILE_PATH);
+  int pid = read_pid(pidfile);
   LOGF("Flag 3: pid read: %d\n", pid)
 
 
@@ -13,7 +13,7 @@ void continue_when_possible() {
 
     if (pid == 0) {
       // No pid file. I am the only one. So, create one and continue.
-      write_pid(PIDFILE_PATH);
+      add_pid(pidfile);
       LOG("Flag suc: write_pid\n")
 
       printf("pass!\n");
@@ -34,8 +34,8 @@ void continue_when_possible() {
   } /* for end */
 }
 
-void all_done() {
-  dequeue_pid(getpid());
+void all_done(char *pidfile) {
+  remove_pid(pidfile, getpid());
 }
 
 int read_pid (char *pidfile)
@@ -50,30 +50,19 @@ int read_pid (char *pidfile)
   return pid;
 }
 
-int write_pid (char *pidfile) {
-  FILE *f;
-  int fd;
-  int pid;
+int add_pid (char *pidfile) {
+  FILE *fp = fdopen(fd, "a"); // append at the end
+  if (fp == NULL) ERRORF("Can't open or create %s.\n", pidfile);
 
-  if ( ((fd = open(pidfile, O_RDWR|O_CREAT, 0644)) == -1)
-  || ((f = fdopen(fd, "r+")) == NULL) ) {
-    fprintf(stderr, "Can't open or create %s.\n", pidfile);
-    return 0;
-  }
+  int pid = getpid();
+  if (!fprintf(f,"%d\n", pid)) ERROR("Failed writing pid to file.\n")
 
-  pid = getpid();
-  if (!fprintf(f,"%d\n", pid)) {
-    close(fd);
-    return 0;
-  }
-
-  fflush(f);
   close(fd);
 
   return pid;
 }
 
-void dequeue_pid(int pid) {
+void remove_pid(char *pidfile, int pid) {
   FILE *f;
   int fileSize;
   char fbuff[PIDFILE_BUF_MAX];

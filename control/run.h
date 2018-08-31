@@ -20,8 +20,8 @@ void all_done();
 
 int read_pid();
 
-int write_pid (char *pidfile);
+int add_pid (char *pidfile);
 
-void dequeue_pid(int pid);
+void remove_pid(char *pidfile, int pid);
 
 #endif
