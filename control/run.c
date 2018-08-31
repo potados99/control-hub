@@ -50,6 +50,7 @@ void continue_when_possible(char *pidfile) {
   if (pidRead == 0) return; /* No one here. It's my turn. */
 
   for(;;) {
+    usleep(1000);
     ///////////////////////////
     if (flag) {
       all_done(PIDFILE_PATH);
