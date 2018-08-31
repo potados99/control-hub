@@ -50,7 +50,7 @@ void continue_when_possible(char *pidfile) {
   if (pidRead == 0) return; /* No one here. It's my turn. */
 
   for(;;) {
-    usleep(1000);
+    //usleep(1000);
     ///////////////////////////
     if (flag) {
       all_done(PIDFILE_PATH);
@@ -60,11 +60,7 @@ void continue_when_possible(char *pidfile) {
     ///////////////////////////
     pidRead = read_pid(pidfile);
     if (pidRead == mypid) return; /* Yeah let's go. */
-    if (pidRead == 0) {
-      // file is gone!
-      add_pid(pidfile);
-      return;
-    } /* End of if */
+    if (pidRead == 0) ERROR("continue_when_possible: pid file is gone.\n")
   } /* End of for */
 }
 
