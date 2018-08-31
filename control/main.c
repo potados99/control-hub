@@ -2,19 +2,17 @@
 #include "run.h"
 
 int main(int argc, const char *argv[]) {
-	LOG("Flag 1\n")
 
-	continue_when_possible();
+	continue_when_possible(PIDFILE_PATH);
 
-	LOG("Flag suc-continue\n")
 
-int cnt = 0;
+	int cnt = 0;
 	for (;;) {
 		printf("%s, %d\n", "doing my job!", cnt);
 		usleep(1000 * 1000 * 1);
 
-		if (cnt++ > 10) {
-			dequeue_pid(getpid());
+		if (cnt++ > 2) {
+			all_done(PIDFILE_PATH);
 			return 0;
 		}
 	}
@@ -46,7 +44,7 @@ int cnt = 0;
 	bool success = send_command(cmdBuff);
 	if (!success) ERROR("Faild getting response.\n")
 
-	dequeue_pid(getpid());
+	all_done(PIDFILE_PATH);
 
 	return success;
 }

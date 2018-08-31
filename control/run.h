@@ -24,4 +24,6 @@ int add_pid (char *pidfile);
 
 void remove_pid(char *pidfile, int pid);
 
+int _read_all(char *filePath, char *outBuffer);
+
 #endif
