@@ -1,17 +1,18 @@
 #ifndef serial_h
 #define serial_h
 
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 #include <termios.h>
 #include <fcntl.h>
+
 #include "macros.h"
+
+#define SECTION_KEY "device"
+#define PORT_KEY "port"
+#define BDRT_KEY "baudrate"
 
 #define ARGS_MAX 3
 #define CMDBUFF_MAX 64
+#define MAX_RETRY 1048576 /* 2^20 */
 
 bool send_command(const char *command);
 

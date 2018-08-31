@@ -1,31 +1,70 @@
 #include "run.h"
+#include "serial.h"
+
+extern volatile sig_atomic_t flag;
+
+int main_wrapper(int argc, const char *argv[]) {
+  #ifdef TEST
+  for (int cnt = 0; cnt < 3; ++ cnt) {
+    printf("%s, %d\n", "Test: Doing my job!", cnt);
+    usleep(1000 * 1000 * 1);
+  }
+  all_done(PIDFILE_PATH);
+  exit(0);
+  #endif
+
+  if (argc < ARGS_MAX - 1) {
+    fprintf(stderr, "Arguments not enough.\n");
+    fprintf(stderr, "Usage: $EXCUTABLE [arg1] ...\n");
+    ERROR("Args\n")
+  }
+
+  if (argc - 1 > ARGS_MAX) {
+    fprintf(stderr, "Too many arguments. Max is %d.\n", ARGS_MAX);
+    ERROR("Args\n")
+  }
+
+  char cmdBuff[CMDBUFF_MAX] = {0,};
+  memset(cmdBuff, 0, CMDBUFF_MAX);
+
+  for (int i = 1; i < argc; ++ i) {
+    if (i > ARGS_MAX) break;
+
+    strcat(cmdBuff, argv[i]);
+    if (i < argc - 1) strcat(cmdBuff, " ");
+  }
+  strcat(cmdBuff, "\n");
+
+  bool success = send_command(cmdBuff);
+  if (!success) ERROR("Faild getting response.\n")
+
+  return success;
+}
 
 void continue_when_possible(char *pidfile) {
-  int mypid = getpid();
+  int mypid = getpid(); /* To prevent overhead, save it to variable. */
   int pidRead = read_pid(pidfile);
-
-  if (pidRead == 0) {
-    add_pid(pidfile);
-    return;
-  }
 
   add_pid(pidfile);
 
+  if (pidRead == 0) return; /* No one here. It's my turn. */
+
   for(;;) {
-    if ((pidRead = read_pid(pidfile)) == mypid) {
-      return;
+    ///////////////////////////
+    if (flag) {
+      all_done(PIDFILE_PATH);
+      LOGF("Exit with %d.\n", flag)
+      exit(flag);
     }
-    if (read_pid(pidfile) == 0) {
+    ///////////////////////////
+    pidRead = read_pid(pidfile);
+    if (pidRead == mypid) return; /* Yeah let's go. */
+    if (pidRead == 0) {
       // file is gone!
       add_pid(pidfile);
       return;
-    }
-    else {
-      LOG("Wait!\n");
-    }
-    usleep(1000 * 1000 * 1);
-  } /* for end */
-
+    } /* End of if */
+  } /* End of for */
 }
 
 void all_done(char *pidfile) {
@@ -34,7 +73,7 @@ void all_done(char *pidfile) {
 
 int read_pid (char *pidfile) {
   FILE *fp =fopen(pidfile,"r");
-  if (!fp) return 0;
+  if (!fp) return 0; /* Having no file is not an exception. */
 
   int pid = 0;
   fscanf(fp,"%d", &pid);
@@ -45,10 +84,10 @@ int read_pid (char *pidfile) {
 
 int add_pid (char *pidfile) {
   FILE *fp = fopen(pidfile, "a"); // append at the end
-  if (!fp) ERRORF("Can't open or create %s.\n", pidfile);
+  if (!fp) ERRORF("add_pid: Can't open or create %s.\n", pidfile);
 
   int pid = getpid();
-  if (!fprintf(fp,"%d\n", pid)) ERROR("Failed writing pid to file.\n")
+  if (!fprintf(fp,"%d\n", pid)) ERROR("add_pid: Failed writing pid to file.\n")
 
   fclose(fp);
 
@@ -59,6 +98,9 @@ void remove_pid(char *pidfile, int pid) {
   char fbuf[PIDFILE_BUF_MAX];
   memset(fbuf, 0, sizeof(fbuf));
   int fsize = _read_all(pidfile, fbuf);
+  if (fsize == 0) ERROR("remove_pid: Pid file is empty. File must have been modified by other processes.\n");
+
+  LOG("Successfully read pid file.\n")
 
   /*
   First, check if the line (null terminated) contains pid.
@@ -67,25 +109,32 @@ void remove_pid(char *pidfile, int pid) {
   */
 
   FILE *fp_write = fopen(pidfile, "w");
+  if (!fp_write) ERRORF("remove_pid: Failed opening pid file for writing: Can't open or create %s\n", pidfile)
 
   for (int i = 0; fbuf[i] != EOF; ++ i) {
-    if (fbuf[i] == '\n') fbuf[i] = 0x00;
+    if (fbuf[i] == '\n') fbuf[i] = 0x00; /* Make line null-terminated. */
   }
 
-  char * curLocation = fbuf;
-
-  while ((curLocation - fbuf < fsize)) {
+  char * curLocation = fbuf; /* Setup a pointer to indicate current location. */
+  while (curLocation - fbuf < fsize) {
     if (atoi(curLocation) == pid) {
       // The pid. pass this line.
-      LOGF("Remove %d\n", pid)
+
+      LOGF("Pid file: Remove %d\n", pid)
+
       curLocation += strlen(curLocation) + 1;
     }
     else if (*curLocation) {
-      // This buffer is filled with 0 because we did memset.
-      // So it is sure that if the value of curLocation is not zero,
-      // it is a valid character.
-      fprintf(fp_write, "%s\n", curLocation);
-      LOGF("Left pid: %s\n", curLocation)
+      /*
+      This buffer is filled with 0 because we did memset.
+      So it is sure that if the value of curLocation is not zero,
+      it is a valid character.
+      */
+
+      if (!fprintf(fp_write, "%s\n", curLocation)) ERROR("remove_pid: Failed writing pid to file.\n")
+
+      LOGF("Pid file: Left %s\n", curLocation)
+
       curLocation += strlen(curLocation) + 1;
     }
     else {
@@ -93,24 +142,30 @@ void remove_pid(char *pidfile, int pid) {
     } /* End of if */
   } /* End of while */
 
+  LOG("Successfully wrote pid file.\n")
+
   fclose(fp_write);
 }
 
-
 int _read_all(char *filePath, char *outBuffer) {
-  FILE *fp_read = fopen(filePath, "r+");
-  if (!fp_read) ERRORF("Error opening pid file: Can't open or create %s.\n", filePath)
+  // Important: the outBuffer must be allocated and wrote 0.
 
-  // get file size
+  FILE *fp_read = fopen(filePath, "r+");
+  if (!fp_read) ERRORF("_read_all: Failed opening file for reading: Can't open or create %s\n", filePath)
+
+  // Get file size
   fseek(fp_read, 0, SEEK_END);
   int fsize = (int)ftell(fp_read);
-  if (fsize == 0) ERROR("No pid file.\n") /* There were no pid file. */
+  if (fsize == 0) {
+    fclose(fp_read);
+    return 0;
+  }
   fseek(fp_read, 0, SEEK_SET);
 
+  // Read file and save it to buffer
   char *fbuf = outBuffer;
+  if (fread(fbuf, fsize, 1, fp_read) < 1) ERRORF("_read_all: Failed reading file: %s\n", filePath)
 
-  // read file and save it to buffer
-  if (fread(fbuf, fsize, 1, fp_read) < 1) ERROR("Config: Failed reading pid file.\n")
   fclose(fp_read);
 
   return fsize;

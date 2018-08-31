@@ -1,13 +1,17 @@
 #ifndef setting_h
 #define setting_h
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
+
 #include "macros.h"
+
+#define CONFIG_FILE_PATH ".control/config.txt"
+#define SECTION_OPEN '['
+#define SECTION_CLOSE ']'
+#define SPACE ' '
+#define EQUAL '='
+#define LINE_FEED '\n'
 
 #define FILE_BUFFER_MAX 1024
 #define SETTING_LENG_MAX 64

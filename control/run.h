@@ -1,27 +1,23 @@
 #ifndef run_h
 #define run_h
 
-#include <unistd.h>
-#include <string.h>
 #include "macros.h"
-#include <sys/stat.h>
-#include <sys/file.h>
-#include <string.h>
-#include <errno.h>
-#include <signal.h>
-#include <fcntl.h>
 
+#ifdef TEST
 #define PIDFILE_PATH "/var/run/control/control.pid"
+#else
+#define PIDFILE_PATH "/run/control/control.pid"
+#endif
+
 #define PIDFILE_BUF_MAX 128
 
-void continue_when_possible();
+int main_wrapper(int argc, const char *argv[]);
 
-void all_done();
+void continue_when_possible();
+void all_done(char *pidfile);
 
 int read_pid();
-
 int add_pid (char *pidfile);
-
 void remove_pid(char *pidfile, int pid);
 
 int _read_all(char *filePath, char *outBuffer);

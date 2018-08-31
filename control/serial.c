@@ -1,11 +1,8 @@
 #include "serial.h"
 #include "setting.h"
 
-#define SECTION_KEY "device"
-#define PORT_KEY "port"
-#define BDRT_KEY "baudrate"
-
-#define MAX_RETRY 1000000
+extern volatile sig_atomic_t flag;
+#include "run.h"
 
 bool send_command(const char *command) {
   // getting port from setting
@@ -24,6 +21,13 @@ bool send_command(const char *command) {
   int fd = 0;
   int retryCnt = 0;
   while ((fd = open(port, O_RDWR | O_NOCTTY | O_SYNC)) < 0) {
+    ///////////////////////////
+    if (flag) {
+      all_done(PIDFILE_PATH);
+      LOGF("Exit with %d.\n", flag)
+      exit(flag);
+    }
+    ///////////////////////////
     if (retryCnt ++ > MAX_RETRY) ERROR("Error opening port. Max retry exceeded.\n")
   }
 

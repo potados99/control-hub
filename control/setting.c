@@ -1,12 +1,5 @@
 #include "setting.h"
 
-#define CONFIG_FILE_PATH ".control/config.txt"
-#define SECTION_OPEN '['
-#define SECTION_CLOSE ']'
-#define SPACE ' '
-#define EQUAL '='
-#define LINE_FEED '\n'
-
 void get_setting(const char *_section, const char *_key, char *_val_out) {
 	// read file
 	char fbuff[FILE_BUFFER_MAX];
@@ -79,7 +72,6 @@ int read_file(char *_filePath, char *_file_out) {
 	return fileSize;
 }
 
-
 bool _get_section(char *_fbuff, int *pos, const char *_section) {
 	char *begin = _fbuff + *pos + 1; /* the opening brace + 1 */
 	char *end = strchr(begin, SECTION_CLOSE);
@@ -99,7 +91,6 @@ bool _get_section(char *_fbuff, int *pos, const char *_section) {
 	return inTargetSection;
 }
 
-
 bool _get_key_value(char *_fbuff, int *pos, const char *_key, char *_val_out) {
 	char *begin = _fbuff + *pos;
 	char *end = strchr(begin, LINE_FEED);
@@ -114,8 +105,10 @@ bool _get_key_value(char *_fbuff, int *pos, const char *_key, char *_val_out) {
 
 	LOGF("Current line: %s\n",curKeyValLine)
 
-	char key[SETTING_LENG_MAX] = {0,};
-	char val[SETTING_LENG_MAX] = {0,};
+	char key[SETTING_LENG_MAX];
+	memset(key, 0, sizeof(key));
+	char val[SETTING_LENG_MAX];
+	memset(val, 0, sizeof(val));
 
 	if (! _split(curKeyValLine, EQUAL, key, val)) ERROR("Config: Failed getting key and value from string.\n")
 
