@@ -4,7 +4,7 @@
 #include "macros.h"
 
 #ifdef TEST
-#define PIDFILE_PATH "/run/control/control.pid"
+#define PIDFILE_PATH "/var/run/control/control.pid"
 #else
 #define PIDFILE_PATH "/run/control/control.pid"
 #endif

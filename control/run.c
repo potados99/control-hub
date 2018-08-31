@@ -108,7 +108,7 @@ void remove_pid(char *pidfile, int pid) {
   Do these steps until we meet End Of File.
   */
 
-  FILE *fp_write = fopen(pidfile, "w");
+  FILE *fp_write = fopen(pidfile, "w+");
   if (!fp_write) ERRORF("remove_pid: Failed opening pid file for writing: Can't open or create %s\n", pidfile)
 
   for (int i = 0; fbuf[i] != EOF; ++ i) {
