@@ -4,7 +4,7 @@
 
 volatile sig_atomic_t flag = 0;
 
-void sig_handler(int sig){ // can be called asynchronously
+void sig_handler(int sig) { // can be called asynchronously
 	flag = sig; // set flag
 }
 
