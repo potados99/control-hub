@@ -109,15 +109,12 @@ void remove_pid(char *pidfile, int pid) {
   */
 
   FILE *fp_write = fopen(pidfile, "w+");
-  LOG("flag 1\n")
 
   if (!fp_write) ERRORF("remove_pid: Failed opening pid file for writing: Can't open or create %s\n", pidfile)
 
-  LOG("flag 1\n")
-
   for (int i = 0; fbuf[i] != EOF; ++ i) {
+    if (!fbuf[i]) break; /* For safety. */
     if (fbuf[i] == '\n') fbuf[i] = 0x00; /* Make line null-terminated. */
-    if (!fbuf[i]) break;
   }
 
   char * curLocation = fbuf; /* Setup a pointer to indicate current location. */
