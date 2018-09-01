@@ -64,7 +64,7 @@ void continue_when_possible(char *pidfile) {
     else {
       // Other's pid. Wait.
       if (++cnt > MAX_RETRY) {
-        remove_pid(pinRead);
+        remove_pid(PIDFILE_PATH, pinRead);
       }
     } /* End of if */
   } /* End of for */
