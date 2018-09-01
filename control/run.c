@@ -1,10 +1,10 @@
 #include "run.h"
 #include "serial.h"
 
-extern volatile sig_atomic_t flag;
+extern volatile sig_atomic_t flag; /* Declaired in main.c */
 
 int main_wrapper(int argc, const char *argv[]) {
-  #ifdef TEST
+  #ifdef FAKE_JOB
   for (int cnt = 0; cnt < 3; ++ cnt) {
     printf("%s, %d\n", "Test: Doing my job!", cnt);
     usleep(1000 * 1000 * 1);
@@ -52,13 +52,14 @@ void continue_when_possible(char *pidfile) {
   time_t t_start = time(NULL);
   time_t t_cur;
   for(;;) {
-    ///////////////////////////
+    ////////// Flag //////////
     if (flag) {
+      // When received SIGNAL, remove current pid from file and exit.
       all_done(PIDFILE_PATH);
       LOGF("Exit with %d.\n", flag)
       exit(flag);
     }
-    ///////////////////////////
+    //////////////////////////
 
     t_cur = time(NULL);
     pidRead = read_pid(pidfile);
@@ -80,11 +81,11 @@ void continue_when_possible(char *pidfile) {
       Wait for up to 2 seconds.
       */
       if (t_cur - t_start >= APP_TIMEOUT) {
-        // Wait only for 2 seconds.
         t_start = time(NULL);
         remove_pid(PIDFILE_PATH, pidRead);
       }
     } /* End of if */
+
   } /* End of for */
 }
 
@@ -98,6 +99,7 @@ int read_pid (char *pidfile) {
 
   int pid = 0;
   fscanf(fp,"%d", &pid);
+
   fclose(fp);
 
   return pid;
@@ -129,7 +131,7 @@ void remove_pid(char *pidfile, int pid) {
   Do these steps until we meet End Of File.
   */
 
-  FILE *fp_write = fopen(pidfile, "w+");
+  FILE *fp_write = fopen(pidfile, "w");
 
   if (!fp_write) ERRORF("remove_pid: Failed opening pid file for writing: Can't open or create %s\n", pidfile)
 
@@ -173,7 +175,7 @@ void remove_pid(char *pidfile, int pid) {
 int _read_all(char *filePath, char *outBuffer) {
   // Important: the outBuffer must be allocated and wrote 0.
 
-  FILE *fp_read = fopen(filePath, "r+");
+  FILE *fp_read = fopen(filePath, "r");
   if (!fp_read) ERRORF("_read_all: Failed opening file for reading: Can't open or create %s\n", filePath)
 
   // Get file size

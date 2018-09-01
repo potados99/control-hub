@@ -1,8 +1,8 @@
 #include "serial.h"
 #include "setting.h"
+#include "run.h" /* all_done */
 
-extern volatile sig_atomic_t flag;
-#include "run.h"
+extern volatile sig_atomic_t flag; /* Declaired in main.c */
 
 bool send_command(const char *command) {
   // getting port from setting
@@ -21,13 +21,13 @@ bool send_command(const char *command) {
   int fd = 0;
   time_t t = time(NULL);
   while ((fd = open(port, O_RDWR | O_NOCTTY | O_SYNC)) < 0) {
-    ///////////////////////////
+    ////////// Flag //////////
     if (flag) {
       all_done(PIDFILE_PATH);
       LOGF("Exit with %d.\n", flag)
       exit(flag);
     }
-    ///////////////////////////
+    //////////////////////////
     if (time(NULL) - t >= SERIAL_TIMEOUT) ERROR("Error opening port. Timeout.\n")
   }
 
@@ -63,9 +63,7 @@ bool send_command(const char *command) {
   return TRUE;
 }
 
-
-void set_interface_attribs (int fd, int speed, int parity)
-{
+void set_interface_attribs (int fd, int speed, int parity) {
   struct termios tty;
   memset (&tty, 0, sizeof tty);
   if (tcgetattr (fd, &tty) != 0) ERROR("Error from tcgetattr.\n")
