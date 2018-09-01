@@ -10,6 +10,7 @@
 #endif
 
 #define PIDFILE_BUF_MAX 128
+#define APP_TIMEOUT 2
 
 int main_wrapper(int argc, const char *argv[]);
 

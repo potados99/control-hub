@@ -19,7 +19,7 @@ bool send_command(const char *command) {
 
   // opening port
   int fd = 0;
-  unsigned long retry = 0;
+  time_t t = time(NULL);
   while ((fd = open(port, O_RDWR | O_NOCTTY | O_SYNC)) < 0) {
     ///////////////////////////
     if (flag) {
@@ -28,7 +28,7 @@ bool send_command(const char *command) {
       exit(flag);
     }
     ///////////////////////////
-    if (++retry > MAX_RETRY) ERROR("Error opening port. Max retry exceeded.\n")
+    if (time(NULL) - t >= SERIAL_TIMEOUT) ERROR("Error opening port. Timeout.\n")
   }
 
   set_interface_attribs (fd, baudrate, 0); /* set speed to 9,600 bps, 8n1 (no parity) */

@@ -49,7 +49,7 @@ void continue_when_possible(char *pidfile) {
 
   if (pidRead == 0) return; /* No one here. It's my turn. */
 
-  unsigned long retry = 0;
+  time_t t = time(NULL);
   for(;;) {
     ///////////////////////////
     if (flag) {
@@ -63,7 +63,7 @@ void continue_when_possible(char *pidfile) {
     else if (pidRead == 0) { /* File is being modified.(or deleted.) Do nothing. */ }
     else {
       // Other's pid. Wait.
-      if (++retry > MAX_RETRY) {
+      if (time(NULL) - t >= APP_TIMEOUT) {
         remove_pid(PIDFILE_PATH, pidRead);
       }
     } /* End of if */

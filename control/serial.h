@@ -3,6 +3,7 @@
 
 #include <termios.h>
 #include <fcntl.h>
+#include <time.h>
 
 #include "macros.h"
 
@@ -12,7 +13,7 @@
 
 #define ARGS_MAX 3
 #define CMDBUFF_MAX 64
-#define MAX_RETRY 524288 /* 2^20 */
+#define SERIAL_TIMEOUT 2
 
 bool send_command(const char *command);
 
