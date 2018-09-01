@@ -49,7 +49,8 @@ void continue_when_possible(char *pidfile) {
 
   if (pidRead == 0) return; /* No one here. It's my turn. */
 
-  time_t t = time(NULL);
+  time_t t_start = time(NULL);
+  time_t t_cur;
   for(;;) {
     ///////////////////////////
     if (flag) {
@@ -58,12 +59,28 @@ void continue_when_possible(char *pidfile) {
       exit(flag);
     }
     ///////////////////////////
+
+    t_cur = time(NULL);
     pidRead = read_pid(pidfile);
+
     if (pidRead == mypid) return; /* Yeah let's go. */
-    else if (pidRead == 0) { /* File is being modified.(or deleted.) Do nothing. */ }
+    else if (pidRead == 0) { /* File is being modified.(or deleted.) Do nothing. */
+      /*
+      File seems to be under modification.
+      If this status continues for 2 seconds, it is sure that the file is gone.
+      */
+      if (t_cur - t_start >= APP_TIMEOUT) {
+        add_pid(PIDFILE_PATH);
+        return;
+      }
+    }
     else {
-      // Other's pid. Wait.
-      if (time(NULL) - t >= APP_TIMEOUT) {
+      /*
+      Other's turn.
+      Wait for up to 2 seconds.
+      */
+      if (t_cur - t_start >= APP_TIMEOUT) {
+        // Wait only for 2 seconds.
         t = time(NULL);
         remove_pid(PIDFILE_PATH, pidRead);
       }
