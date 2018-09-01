@@ -49,7 +49,7 @@ void continue_when_possible(char *pidfile) {
 
   if (pidRead == 0) return; /* No one here. It's my turn. */
 
-  int cnt = 0;
+  unsigned long retry = 0;
   for(;;) {
     ///////////////////////////
     if (flag) {
@@ -60,10 +60,10 @@ void continue_when_possible(char *pidfile) {
     ///////////////////////////
     pidRead = read_pid(pidfile);
     if (pidRead == mypid) return; /* Yeah let's go. */
-    else if (pidRead == 0) { /* Do nothing. */ }
+    else if (pidRead == 0) { /* File is being modified.(or deleted.) Do nothing. */ }
     else {
       // Other's pid. Wait.
-      if (++cnt > MAX_RETRY) {
+      if (++retry > MAX_RETRY) {
         remove_pid(PIDFILE_PATH, pidRead);
       }
     } /* End of if */

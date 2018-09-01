@@ -12,7 +12,7 @@
 
 #define ARGS_MAX 3
 #define CMDBUFF_MAX 64
-#define MAX_RETRY 1048576 /* 2^20 */
+#define MAX_RETRY 524288 /* 2^20 */
 
 bool send_command(const char *command);
 
