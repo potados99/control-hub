@@ -58,13 +58,13 @@ void continue_when_possible(char *pidfile) {
       exit(flag);
     }
     ///////////////////////////
-    pinRead = read_pid(pidfile);
-    if (pinRead == mypid) return; /* Yeah let's go. */
-    else if (pinRead == 0) { /* Do nothing. */ }
+    pidRead = read_pid(pidfile);
+    if (pidRead == mypid) return; /* Yeah let's go. */
+    else if (pidRead == 0) { /* Do nothing. */ }
     else {
       // Other's pid. Wait.
       if (++cnt > MAX_RETRY) {
-        remove_pid(PIDFILE_PATH, pinRead);
+        remove_pid(PIDFILE_PATH, pidRead);
       }
     } /* End of if */
   } /* End of for */
