@@ -48,6 +48,9 @@ These devices can be controlled using following commands.
 
 **Returns**
 
-Returned value for set commands is T or F.
-For get commands is ON / OFF or number 0-100.
+Returned value for set commands is `T\n` or `F\n`.
+
+For get commands is `ON\n` or `OFF\n` or number `{0-100}\n`.
+
+Every data recieved should have Line Feed character at the end of it.
 
