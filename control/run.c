@@ -64,6 +64,7 @@ void continue_when_possible(char *pidfile) {
     else {
       // Other's pid. Wait.
       if (time(NULL) - t >= APP_TIMEOUT) {
+        t = time(NULL);
         remove_pid(PIDFILE_PATH, pidRead);
       }
     } /* End of if */
