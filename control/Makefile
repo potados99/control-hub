@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -O3 -D VERBOSE -D TEST
+CFLAGS = -Wall -O3
 TARGET = control
 BIN = /usr/local/bin
 
