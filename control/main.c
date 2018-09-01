@@ -13,7 +13,7 @@ int main(int argc, const char *argv[]) {
 	continue_when_possible(PIDFILE_PATH); /* PIDFILE_PATH at run.h */
 
 	bool success = main_wrapper(argc, argv);
-
+	
 	all_done(PIDFILE_PATH);
 
 	return success ? 0 : 1;
