@@ -81,7 +81,7 @@ void continue_when_possible(char *pidfile) {
       */
       if (t_cur - t_start >= APP_TIMEOUT) {
         // Wait only for 2 seconds.
-        t = time(NULL);
+        t_start = time(NULL);
         remove_pid(PIDFILE_PATH, pidRead);
       }
     } /* End of if */
