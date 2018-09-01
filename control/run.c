@@ -49,6 +49,7 @@ void continue_when_possible(char *pidfile) {
 
   if (pidRead == 0) return; /* No one here. It's my turn. */
 
+  int cnt = 0;
   for(;;) {
     ///////////////////////////
     if (flag) {
@@ -57,7 +58,15 @@ void continue_when_possible(char *pidfile) {
       exit(flag);
     }
     ///////////////////////////
-    if (read_pid(pidfile) == mypid) return; /* Yeah let's go. */
+    pinRead = read_pid(pidfile);
+    if (pinRead == mypid) return; /* Yeah let's go. */
+    else if (pinRead == 0) { /* Do nothing. */ }
+    else {
+      // Other's pid. Wait.
+      if (++cnt > MAX_RETRY) {
+        remove_pid(pinRead);
+      }
+    } /* End of if */
   } /* End of for */
 }
 
