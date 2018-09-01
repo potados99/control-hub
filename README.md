@@ -46,4 +46,8 @@ These devices can be controlled using following commands.
 [device] ST [PWR | BRT | SPD]
 ~~~
 
-The return value of set commands is T / F, and that of get commands is number 0-100.
+**Returns**
+
+Returned value for set commands is T or F.
+For get commands is ON / OFF or number 0-100.
+
