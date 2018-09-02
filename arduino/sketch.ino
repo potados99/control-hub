@@ -119,7 +119,7 @@ void serial_task() {
   char recieved = Serial.read();
 
   if ((recieved == TERMINATE) || (recieved == TERMINATE_OPTIONAL)) {
-    if (do_action(Input)) {
+    if (do_action(Input.toUpperCase())) {
       if (Feedback) Serial.write("T\n");
     }
     else {
