@@ -35,7 +35,7 @@
 #define RAPID_DELAY 50
 #define FADE_SPEED 1
 
-#define BUTTON_ACTIVE 1
+#define BUTTON_ACTIVE 0
 #define BTN_IS_PUSHED 0x01
 #define BTN_JUST_TOGGLED 0x02
 #define BTN_PREVENT_BOUNCE_TIME 120 /* millis*/
@@ -386,7 +386,7 @@ void initial_device_setup() {
 }
 
 void initial_pin_setup() {
-  pinMode(LitButton.pin, INPUT);
+  pinMode(LitButton.pin, INPUT_PULLUP);
   pinMode(Buzzer.pin, OUTPUT);
 
   for (unsigned register short i = 0; i < NUMBER_OF_DEVICES; ++ i) {
