@@ -35,6 +35,7 @@
 #define RAPID_DELAY 50
 #define FADE_SPEED 1
 
+#define BUTTON_ACTIVE 1
 #define BTN_IS_PUSHED 0x01
 #define BTN_JUST_TOGGLED 0x02
 #define BTN_PREVENT_BOUNCE_TIME 120 /* millis*/
@@ -113,7 +114,7 @@ void serial_recieve_task() {
     else {
       if (Feedback) Serial.write("F\n");
     }
-    
+
     Input = "";
     Feedback = true;
 
@@ -124,7 +125,7 @@ void serial_recieve_task() {
 }
 
 void lit_button_input_task() {
-  if (! digitalRead(LIT_BUTTON_PIN)) { /* Button is pushed */
+  if (digitalRead(LIT_BUTTON_PIN) == BUTTON_ACTIVE) { /* Button is pushed */
     if ((~LitButton.states & BTN_IS_PUSHED) && (~LitButton.states & BTN_JUST_TOGGLED)) {
       toggle(&LitDevice);
     }
@@ -386,13 +387,11 @@ void initial_device_setup() {
 
 void initial_pin_setup() {
   pinMode(LitButton.pin, INPUT);
-  digitalWrite(LitButton.pin, HIGH);
+  pinMode(Buzzer.pin, OUTPUT);
 
   for (unsigned register short i = 0; i < NUMBER_OF_DEVICES; ++ i) {
     pinMode(DeviceArray[i]->pin, OUTPUT);
   }
-
-  pinMode(Buzzer.pin, OUTPUT);
 }
 
 void initial_serial_setup() {
