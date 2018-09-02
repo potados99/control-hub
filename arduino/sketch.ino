@@ -40,11 +40,11 @@
 #define FADE_SPEED 1
 
 // Button flags
-#define BTN_MODE INPUT_PULLUP
-#if BTN_MODE == INPUT_PULLUP
-#define BTN_ACTIVE_ST LOW /* Active low when pull-up. */
+#define LIT_BTN_MODE INPUT_PULLUP
+#if LIT_BTN_MODE == INPUT_PULLUP
+#define LIT_BTN_ACTIVE LOW /* Active low when pull-up. */
 #else
-#define BTN_ACTIVE_ST HIGH /* Active low when pull-down or anything. */
+#define LIT_BTN_ACTIVE HIGH /* Active low when pull-down or anything. */
 #endif
 #define BTN_IS_PUSHED 0x01
 #define BTN_JUST_TOGGLED 0x02
@@ -137,7 +137,7 @@ void serial_task() {
 
 void button_task(Button *button, Device *device) {
   if (digitalRead(device->pin) == button->pinActive) { /* Button is pushed */
-    if ((~device->states & BTN_IS_PUSHED) && (~button->states & BTN_JUST_TOGGLED)) {
+    if ((~button->states & BTN_IS_PUSHED) && (~button->states & BTN_JUST_TOGGLED)) {
       toggle(device);
     }
     button->states |= BTN_IS_PUSHED; /* Add 0000 0001 */
@@ -392,8 +392,8 @@ void initial_device_setup() {
   FanDevice.pin = FAN_CONTROL_PIN;
 
   LitButton.pin = LIT_BUTTON_PIN;
-  LitButton.pinMode = BTN_MODE;
-  LitButton.pinActive = BTN_ACTIVE_ST;
+  LitButton.pinMode = LIT_BTN_MODE;
+  LitButton.pinActive = LIT_BTN_ACTIVE;
 
   Buzzer.pin = BUZ_CONTROL_PIN;
 }
