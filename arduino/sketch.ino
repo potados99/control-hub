@@ -19,32 +19,41 @@
 ////////////////////////////////////
 
 #ifdef CONSTANTS
+// Serial
 #define SERIAL_BAUDRATE 9600
 #define INTERRUPT_CODE 27 /* esc */
 #define TERMINATE '\n'
 #define TERMINATE_OPTIONAL ';'
 #define PARAM_MAX 3
 
+// Pin numbers
 #define BUZ_CONTROL_PIN 2
-#define LIT_BUTTON_PIN 19
+#define LIT_BUTTON_PIN 19 /* A5 */
 #define LIT_CONTROL_PIN 4
 #define LED_CONTROL_PIN 3
 #define FAN_CONTROL_PIN 5
 
+// Constants
+#define NUMBER_OF_DEVICES 3
 #define PWM_VAL_RATE 2.55
-#define RAPID_DELAY 50
+#define RAPID_DELAY 50 /* Millis */
 #define FADE_SPEED 1
 
-#define BUTTON_ACTIVE 0
+// Button flags
+#define BTN_MODE INPUT_PULLUP
+#if BTN_MODE == INPUT_PULLUP
+#define BTN_ACTIVE_ST LOW /* Active low when pull-up. */
+#else
+#define BTN_ACTIVE_ST HIGH /* Active low when pull-down or anything. */
+#endif
 #define BTN_IS_PUSHED 0x01
 #define BTN_JUST_TOGGLED 0x02
 #define BTN_PREVENT_BOUNCE_TIME 120 /* millis*/
 
+// Buzzer flags
 #define BUZ_IS_ON 0x01
 #define BUZ_ON_TIME 15 /* millis */
 #define BUZ_OFF_TIME 50
-
-#define NUMBER_OF_DEVICES 3
 #endif
 
 
@@ -59,6 +68,8 @@ typedef struct Device {
 typedef struct Button {
   char pin = 0;
   char states = 0;
+  char pinMode = 0;
+  char pinActive = 0;
   unsigned long lastToggle = 0;
 } Button;
 
@@ -94,15 +105,15 @@ void setup() {
 }
 
 void loop() {
-  serial_recieve_task();
-  lit_button_input_task();
-  beep_task();
+  serial_task();
+  button_task(&LitButton, &LitDevice);
+  beep_task(&Buzzer);
 }
 #endif
 
 
 #ifdef TASK_FUNCTIONS
-void serial_recieve_task() {
+void serial_task() {
   if (! Serial.available()) return; /* nothing to do when nothing arrived. */
 
   char recieved = Serial.read();
@@ -124,46 +135,46 @@ void serial_recieve_task() {
   Input += recieved; /* else, append recieved char to input */
 }
 
-void lit_button_input_task() {
-  if (digitalRead(LIT_BUTTON_PIN) == BUTTON_ACTIVE) { /* Button is pushed */
-    if ((~LitButton.states & BTN_IS_PUSHED) && (~LitButton.states & BTN_JUST_TOGGLED)) {
-      toggle(&LitDevice);
+void button_task(Button *button, Device *device) {
+  if (digitalRead(device->pin) == button->pinActive) { /* Button is pushed */
+    if ((~device->states & BTN_IS_PUSHED) && (~button->states & BTN_JUST_TOGGLED)) {
+      toggle(device);
     }
-    LitButton.states |= BTN_IS_PUSHED; /* Add 0000 0001 */
-    LitButton.states |= BTN_JUST_TOGGLED; /* Add 0000 0010 */
-    LitButton.lastToggle = millis();
+    button->states |= BTN_IS_PUSHED; /* Add 0000 0001 */
+    button->states |= BTN_JUST_TOGGLED; /* Add 0000 0010 */
+    button->lastToggle = millis();
     return;
   }
   else {
-    LitButton.states &= ~BTN_IS_PUSHED; /* Subtract 0000 0001 */
+    button->states &= ~BTN_IS_PUSHED; /* Subtract 0000 0001 */
   }
 
-  if (~LitButton.states & BTN_JUST_TOGGLED) return;
-  if (millis() - LitButton.lastToggle >= BTN_PREVENT_BOUNCE_TIME) LitButton.states &= ~BTN_JUST_TOGGLED;
+  if (~button->states & BTN_JUST_TOGGLED) return;
+  if (millis() - button->lastToggle >= BTN_PREVENT_BOUNCE_TIME) button->states &= ~BTN_JUST_TOGGLED;
 }
 
-void beep_task() {
-  if (Buzzer.countRemain > 0) {
-    if ((~Buzzer.states) & BUZ_IS_ON) { /* When buzzer is off */
+void beep_task(Notifier *notifier) {
+  if (notifier->countRemain > 0) {
+    if ((~notifier->states) & BUZ_IS_ON) { /* When buzzer is off */
       // Turn on buzzer
-      if (millis() - Buzzer.lastToggle > BUZ_OFF_TIME) {
-        digitalWrite(Buzzer.pin, HIGH);
-        Buzzer.states |= BUZ_IS_ON;
-        Buzzer.lastToggle = millis();
+      if (millis() - notifier->lastToggle > BUZ_OFF_TIME) {
+        digitalWrite(notifier->pin, HIGH);
+        notifier->states |= BUZ_IS_ON;
+        notifier->lastToggle = millis();
       }
     }
     else { /* When buzzer is on */
       // Turn off buzzer
-      if (millis() - Buzzer.lastToggle > BUZ_ON_TIME) {
-        digitalWrite(Buzzer.pin, LOW);
-        Buzzer.states &= ~BUZ_IS_ON;
-        Buzzer.lastToggle = millis();
-        Buzzer.countRemain -= 1;
+      if (millis() - notifier->lastToggle > BUZ_ON_TIME) {
+        digitalWrite(notifier->pin, LOW);
+        notifier->states &= ~BUZ_IS_ON;
+        notifier->lastToggle = millis();
+        notifier->countRemain -= 1;
       }
     }
   }
   else {
-    Buzzer.countRemain = 0;
+    notifier->countRemain = 0;
   }
 }
 #endif
@@ -381,12 +392,14 @@ void initial_device_setup() {
   FanDevice.pin = FAN_CONTROL_PIN;
 
   LitButton.pin = LIT_BUTTON_PIN;
+  LitButton.pinMode = BTN_MODE;
+  LitButton.pinActive = BTN_ACTIVE_ST;
 
   Buzzer.pin = BUZ_CONTROL_PIN;
 }
 
 void initial_pin_setup() {
-  pinMode(LitButton.pin, INPUT_PULLUP);
+  pinMode(LitButton.pin, LitButton.pinMode);
   pinMode(Buzzer.pin, OUTPUT);
 
   for (unsigned register short i = 0; i < NUMBER_OF_DEVICES; ++ i) {
