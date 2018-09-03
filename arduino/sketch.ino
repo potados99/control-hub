@@ -172,14 +172,17 @@ void rapid_task(Device *devices[]) {
     // Exception handling
     if (~devices[i]->rapidStates & RPD_MODE_IS_ON) {
       init_rapid_props(devices[i]);
+      power_control(device, device->power);
       break;
     }
     if (devices[i]->rapidDuration == 0) {
       init_rapid_props(devices[i]);
+      power_control(device, device->power);
       break;
     }
     if (millis() - devices[i]->rapidStart > devices[i]->rapidDuration) {
       init_rapid_props(devices[i]);
+      power_control(device, device->power);
       break;
     }
 
