@@ -271,6 +271,9 @@ bool device_control(Device *device, String *args) {
   else if (*args == "SPD") { // PWM only
     return pwm_control(device, args+1);
   }
+  else if (*args == "VOL") { // PWM only
+    return pwm_control(device, args+1);
+  }
   else if (*args == "FADE") {
     return fade_control(device, args+1);
   }
