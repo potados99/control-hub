@@ -149,6 +149,7 @@ void serial_task() {
 
 void button_task(Button *button, Device *device) {
   if (digitalRead(device->pin) == button->pinActive) { /* Button is pushed */
+    Serial.println("dddd!");
     if ((~button->states & BTN_IS_PUSHED) && (~button->states & BTN_JUST_TOGGLED)) {
       toggle(device);
     }
@@ -254,7 +255,7 @@ bool do_action(String incommingString) {
   if (incommingString == "") return error(3);
 
   String commands[PARAM_MAX];
-  for (unsigned register short i = 0; i < PARAM_MAX; ++ i) { 
+  for (unsigned register short i = 0; i < PARAM_MAX; ++ i) {
     commands[i] = split(incommingString, ' ', i);
     commands[i].trim();
   }
