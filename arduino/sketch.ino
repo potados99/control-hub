@@ -250,10 +250,6 @@ bool do_action(String incommingString) {
     }
   }
 
-  if (*commands == "ALM") {
-    return alarm_control(commands+1);
-  }
-
   return error(2);
 }
 
