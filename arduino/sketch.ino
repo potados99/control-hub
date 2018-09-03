@@ -93,6 +93,7 @@ Device FanDevice;
 Button LitButton;
 Notifier Buzzer;
 
+bool Alarm = false;
 bool Feedback = false;
 #endif
 
@@ -155,6 +156,25 @@ void button_task(Button *button, Device *device) {
 }
 
 void beep_task(Notifier *notifier) {
+  static bool alarmWas = false;
+  if (Alarm) {
+    // When alarm just turned on.
+    if (alarmWas == false) {
+      digitalWrite(notifier->pin, HIGH);  
+      notifier->states |= BUZ_IS_ON;
+    }
+    alarmWas = true;
+    return;
+  }
+  else {
+    // When alarm just turned off.
+    if (alarmWas == true) {
+      digitalWrite(notifier->pin, LOW);
+      notifier->states &= ~BUZ_IS_ON;
+    }
+    alarmWas = false;
+  }
+
   if (notifier->countRemain > 0) {
     if ((~notifier->states) & BUZ_IS_ON) { /* When buzzer is off */
       // Turn on buzzer
@@ -188,10 +208,15 @@ bool do_action(String incommingString) {
   String commands[PARAM_MAX];
   for (unsigned register short i = 0; i < PARAM_MAX; ++ i) { commands[i] = split(incommingString, ' ', i); }
 
+  // Direct device control
   for (unsigned register short i = 0; i < NUMBER_OF_DEVICES; ++ i) {
     if (*commands == DeviceArray[i]->name) {
       return device_control(DeviceArray[i], commands+1);
     }
+  }
+
+  if (*commands == "ALM") {
+    return alarm_control(commands+1);
   }
 
   return error(2);
@@ -301,6 +326,20 @@ bool rapid_toggle(Device *device, String *args) {
   return power_control(device, originState);
 }
 
+bool alarm_control(String *args) {
+  if (*args == "") return error(3);
+
+  if (*args == "ON") {
+    return alarm(true);
+  }
+  else if (*args == "OFF") {
+    return alarm(false);
+  }
+  else {
+    return error(2);
+  }
+}
+
 bool status_return(Device *device, String *args) {
   if (*args == "") return error(3);
 
@@ -345,6 +384,11 @@ bool toggle(Device *device) {
 
 void beep(int howMany) {
   Buzzer.countRemain += howMany;
+}
+
+bool alarm(bool on) {
+  Alarm = on;
+  return true;
 }
 #endif
 
