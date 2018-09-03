@@ -169,14 +169,13 @@ void button_task(Button *button, Device *device) {
 
 void rapid_task(Device *devices[]) {
   for (unsigned register int i = 0; i < NUMBER_OF_DEVICES; ++ i) {
+    static bool isDone = false;
     // Exception handling
-    bool rapidIsOff = (~devices[i]->rapidStates & RPD_MODE_IS_ON);
-    bool rapidNoDuration = (devices[i]->rapidDuration == 0);
-    bool rapidDone = (millis() - devices[i]->rapidStart > devices[i]->rapidDuration);
 
-    if (rapidIsOff || rapidNoDuration || rapidDone) {
+    if (isDone) {
       init_rapid_props(devices[i]);
       power_control(devices[i], devices[i]->power);
+      isDone = false;
       break;
     }
 
@@ -198,6 +197,15 @@ void rapid_task(Device *devices[]) {
         devices[i]->rapidLastToggle = millis();
       }
     } /* End of if */
+
+    bool rapidIsOff = (~devices[i]->rapidStates & RPD_MODE_IS_ON);
+    bool rapidNoDuration = (devices[i]->rapidDuration == 0);
+    bool rapidDone = (millis() - devices[i]->rapidStart > devices[i]->rapidDuration);
+
+    if (rapidIsOff || rapidNoDuration || rapidDone) {
+      isDone = true;
+    }
+
   } /* End of for */
 }
 
