@@ -176,7 +176,7 @@ void rapid_task(Device *devices[]) {
 
     if (rapidIsOff || rapidNoDuration || rapidDone) {
       init_rapid_props(devices[i]);
-      power_control(devices[i], device->power);
+      power_control(devices[i], devices[i]->power);
       break;
     }
 
