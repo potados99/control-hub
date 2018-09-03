@@ -456,8 +456,8 @@ void initial_device_setup() {
   LedDevice.name = "LED";
   LedDevice.pin = LED_CONTROL_PIN;
 
-  LedDevice.name = "ALM";
-  LedDevice.pin = ALM_CONTROL_PIN;
+  AlmDevice.name = "ALM";
+  AlmDevice.pin = ALM_CONTROL_PIN;
 
   FanDevice.name = "FAN";
   FanDevice.pin = FAN_CONTROL_PIN;
