@@ -170,17 +170,11 @@ void button_task(Button *button, Device *device) {
 void rapid_task(Device *devices[]) {
   for (unsigned register int i = 0; i < NUMBER_OF_DEVICES; ++ i) {
     // Exception handling
-    if (~devices[i]->rapidStates & RPD_MODE_IS_ON) {
-      init_rapid_props(devices[i]);
-      power_control(device, device->power);
-      break;
-    }
-    if (devices[i]->rapidDuration == 0) {
-      init_rapid_props(devices[i]);
-      power_control(device, device->power);
-      break;
-    }
-    if (millis() - devices[i]->rapidStart > devices[i]->rapidDuration) {
+    bool rapidIsOff = ()~devices[i]->rapidStates & RPD_MODE_IS_ON);
+    bool rapidNoDuration = (devices[i]->rapidDuration == 0);
+    bool rapidDone = (millis() - devices[i]->rapidStart > devices[i]->rapidDuration);
+
+    if (rapidIsOff || rapidNoDuration || rapidDone) {
       init_rapid_props(devices[i]);
       power_control(device, device->power);
       break;
