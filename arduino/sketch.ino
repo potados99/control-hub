@@ -54,6 +54,10 @@
 #define BUZ_IS_ON 0x01
 #define BUZ_ON_TIME 15 /* millis */
 #define BUZ_OFF_TIME 50
+
+// Devices rapid flags
+#define RPD_MODE_IS_ON 0x01
+#define RPD_DEV_IS_ON 0x02
 #endif
 
 
@@ -63,6 +67,11 @@ typedef struct Device {
   char pin = 0;
   char pwmVal = 100;
   bool power = false;
+
+  char rapidStates = 0;
+  unsigned long rapidStart = 0;
+  unsigned long rapidDuration = 0;
+  unsigned long rapidLastToggle = 0;
 } Device;
 
 typedef struct Button {
@@ -108,6 +117,7 @@ void setup() {
 void loop() {
   serial_task();
   button_task(&LitButton, &LitDevice);
+  rapid_task(DeviceArray);
   beep_task(&Buzzer);
 }
 #endif
@@ -145,6 +155,7 @@ void button_task(Button *button, Device *device) {
     button->states |= BTN_IS_PUSHED; /* Add 0000 0001 */
     button->states |= BTN_JUST_TOGGLED; /* Add 0000 0010 */
     button->lastToggle = millis();
+
     return;
   }
   else {
@@ -155,12 +166,49 @@ void button_task(Button *button, Device *device) {
   if (millis() - button->lastToggle >= BTN_PREVENT_BOUNCE_TIME) button->states &= ~BTN_JUST_TOGGLED;
 }
 
+void rapid_task(Device *devices) {
+  for (unsigned register int i = 0; i < NUMBER_OF_DEVICES; ++ i) {
+    // Exception handling
+    if (~devices[i]->rapidStates & RPD_MODE_IS_ON) {
+      init_rapid_props(devices[i]);
+      break;
+    }
+    if (devices[i]->rapidDuration == 0) {
+      init_rapid_props(devices[i]);
+      break;
+    }
+    if (millis() - devices[i]->rapidStart > devices[i]->rapidDuration) {
+      init_rapid_props(devices[i]);
+      break;
+    }
+
+    if (devices[i]->rapidStates & RPD_DEV_IS_ON) {
+      // On rapid mode and device is on.
+      if (millis() - devices[i]->rapidLastToggle > RAPID_DELAY) {
+        // It's time to turn off.
+        digitalWrite(devices[i]->pin, LOW);
+        devices[i]->rapidStates &= ~RPD_DEV_IS_ON;
+        devices[i]->rapidLastToggle = millis();
+      }
+    }
+    else {
+      // On rapid mode and device is off.
+      if (millis() - devices[i]->rapidLastToggle > RAPID_DELAY) {
+        // Turn it on back.
+        digitalWrite(devices[i]->pin, HIGH);
+        devices[i]->rapidStates |= RPD_DEV_IS_ON;
+        devices[i]->rapidLastToggle = millis();
+      }
+    } /* End of if */
+  } /* End of for */
+}
+
 void beep_task(Notifier *notifier) {
   static bool alarmWas = false;
   if (Alarm) {
     // When alarm just turned on.
     if (alarmWas == false) {
-      digitalWrite(notifier->pin, HIGH);  
+      digitalWrite(notifier->pin, HIGH);
       notifier->states |= BUZ_IS_ON;
     }
     alarmWas = true;
@@ -176,21 +224,21 @@ void beep_task(Notifier *notifier) {
   }
 
   if (notifier->countRemain > 0) {
-    if ((~notifier->states) & BUZ_IS_ON) { /* When buzzer is off */
-      // Turn on buzzer
-      if (millis() - notifier->lastToggle > BUZ_OFF_TIME) {
-        digitalWrite(notifier->pin, HIGH);
-        notifier->states |= BUZ_IS_ON;
-        notifier->lastToggle = millis();
-      }
-    }
-    else { /* When buzzer is on */
+    if (notifier->states & BUZ_IS_ON) { /* When buzzer is on */
       // Turn off buzzer
       if (millis() - notifier->lastToggle > BUZ_ON_TIME) {
         digitalWrite(notifier->pin, LOW);
         notifier->states &= ~BUZ_IS_ON;
         notifier->lastToggle = millis();
         notifier->countRemain -= 1;
+      }
+    }
+    else { /* When buzzer is off */
+      // Turn on buzzer
+      if (millis() - notifier->lastToggle > BUZ_OFF_TIME) {
+        digitalWrite(notifier->pin, HIGH);
+        notifier->states |= BUZ_IS_ON;
+        notifier->lastToggle = millis();
       }
     }
   }
@@ -232,7 +280,7 @@ bool device_control(Device *device, String *args) {
     return power_control(device, false);
   }
   else if (*args == "RPD") {
-    return rapid_toggle(device, args+1);
+    return rapid_control(device, args+1);
   }
   else if (*args == "BRT") { // PWM only
     return pwm_control(device, args+1);
@@ -252,6 +300,7 @@ bool device_control(Device *device, String *args) {
 }
 
 bool power_control(Device *device, bool power) {
+  if (device->rapidStates & RPD_MDOE_IS_ON) init_rapid_props(device);
   analogWrite(device->pin, (device->power = power) ? (device->pwmVal * PWM_VAL_RATE) : 0);
   if (device->pwmVal == 100) beep(1);
   return (device->power == power);
@@ -305,25 +354,21 @@ bool fade_control(Device *device, String *args) {
   return true;
 }
 
-bool rapid_toggle(Device *device, String *args) {
+bool rapid_control(Device *device, String *args) {
   if (*args == "") return error(3);
-
-  bool originState = device->power;
-
-  unsigned long startTime = millis();
-  unsigned long duration = (*args).toDouble() * 1000;
-
-  for (;;) {
-    power_control(device, true);
-    delay(RAPID_DELAY);
-    power_control(device, false);
-    delay(RAPID_DELAY);
-
-    if (check_interrupt()) break;
-    if (millis() - startTime > duration) break;
+  if (*args == "0") {
+    init_rapid_props(device);
+    return power_control(device, device->power);
   }
 
-  return power_control(device, originState);
+  unsigned long start = millis();
+  unsigned long duration = (*args).toDouble() * 1000; /* Millis */
+
+  device->rapidStates = RPD_MODE_IS_ON;
+  device->rapidStart = start;
+  device->rapidDuration = duration;
+
+  return true;
 }
 
 bool alarm_control(String *args) {
@@ -336,7 +381,7 @@ bool alarm_control(String *args) {
     return alarm(false);
   }
   else if (*args == "ST") {
-    return alarm_return();    
+    return alarm_return();
   }
   else {
     return error(2);
@@ -396,6 +441,13 @@ bool check_interrupt() {
 
 bool toggle(Device *device) {
   return power_control(device, !(device->power));
+}
+
+void init_rapid_props(Device *device) {
+  device->rapidStates = 0;
+  device->rapidStart = 0;
+  device->rapidDuration = 0;
+  device->rapidLastToggle = 0;
 }
 
 void beep(int howMany) {
