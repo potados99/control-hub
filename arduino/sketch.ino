@@ -168,19 +168,19 @@ void button_task(Button *button, Device *device) {
 }
 
 void rapid_task(Device *devices[]) {
-  static bool isDone = false;
-
   for (unsigned register int i = 0; i < NUMBER_OF_DEVICES; ++ i) {
-    // Exception handling
+    static bool isDone = false;
+
+    // Expirtaion handling
     bool rapidEnabled = (devices[i]->rapidStates & RPD_MODE_IS_ON);
     bool rapidDone = (millis() - devices[i]->rapidStart > devices[i]->rapidDuration);
 
-    if (! rapidEnabled) break;
+    if (! rapidEnabled) continue;
     if (rapidEnabled && rapidDone) {
       init_rapid_props(devices[i]);
       power_control(devices[i], devices[i]->power);
       isDone = false;
-      break;
+      continue;
     }
 
     if (devices[i]->rapidStates & RPD_DEV_IS_ON) {
@@ -493,8 +493,8 @@ bool error(int beepCnt) {
 
 #ifdef INITIAL_SETUP
 void initial_device_setup() {
-  DeviceArray[1] = &LitDevice;
-  DeviceArray[0] = &LedDevice;
+  DeviceArray[0] = &LitDevice;
+  DeviceArray[1] = &LedDevice;
   DeviceArray[2] = &FanDevice;
 
   LitDevice.name = "LIT";
