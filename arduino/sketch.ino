@@ -168,8 +168,9 @@ void button_task(Button *button, Device *device) {
 }
 
 void rapid_task(Device *devices[]) {
+  static bool isDone = false;
+
   for (unsigned register int i = 0; i < NUMBER_OF_DEVICES; ++ i) {
-    static bool isDone = false;
     // Exception handling
 
     if (isDone) {
@@ -199,10 +200,9 @@ void rapid_task(Device *devices[]) {
     } /* End of if */
 
     bool rapidIsOff = (~devices[i]->rapidStates & RPD_MODE_IS_ON);
-    bool rapidNoDuration = (devices[i]->rapidDuration == 0);
     bool rapidDone = (millis() - devices[i]->rapidStart > devices[i]->rapidDuration);
 
-    if (rapidIsOff || rapidNoDuration || rapidDone) {
+    if (rapidIsOff || rapidDone) {
       isDone = true;
     }
 
