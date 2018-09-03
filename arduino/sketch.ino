@@ -31,10 +31,11 @@
 #define LIT_BUTTON_PIN 19 /* A5 */
 #define LIT_CONTROL_PIN 4
 #define LED_CONTROL_PIN 3
-#define FAN_CONTROL_PIN 5
+#define ALM_CONTROL_PIN 5
+#define FAN_CONTROL_PIN 6
 
 // Constants
-#define NUMBER_OF_DEVICES 3
+#define NUMBER_OF_DEVICES 4
 #define PWM_VAL_RATE 2.55
 #define RAPID_DELAY 50 /* Millis */
 #define FADE_SPEED 1
@@ -97,6 +98,7 @@ String Input; /* serial input */
 Device *DeviceArray[NUMBER_OF_DEVICES];
 Device LitDevice;
 Device LedDevice;
+Device AlmDevice;
 Device FanDevice;
 
 Button LitButton;
@@ -205,25 +207,6 @@ void rapid_task(Device *devices[]) {
 }
 
 void beep_task(Notifier *notifier) {
-  static bool alarmWas = false;
-  if (Alarm) {
-    // When alarm just turned on.
-    if (alarmWas == false) {
-      digitalWrite(notifier->pin, HIGH);
-      notifier->states |= BUZ_IS_ON;
-    }
-    alarmWas = true;
-    return;
-  }
-  else {
-    // When alarm just turned off.
-    if (alarmWas == true) {
-      digitalWrite(notifier->pin, LOW);
-      notifier->states &= ~BUZ_IS_ON;
-    }
-    alarmWas = false;
-  }
-
   if (notifier->countRemain > 0) {
     if (notifier->states & BUZ_IS_ON) { /* When buzzer is on */
       // Turn off buzzer
@@ -378,36 +361,6 @@ bool rapid_control(Device *device, String *args) {
   return true;
 }
 
-bool alarm_control(String *args) {
-  if (*args == "") return error(3);
-
-  if (*args == "ON") {
-    return alarm(true);
-  }
-  else if (*args == "OFF") {
-    return alarm(false);
-  }
-  else if (*args == "ST") {
-    return alarm_return();
-  }
-  else {
-    return error(2);
-  }
-}
-
-bool alarm(bool on) {
-  Alarm = on;
-  return Alarm == on;
-}
-
-bool alarm_return() {
-  String outString = Alarm ? "ON" : "OFF";
-  send(outString);
-  Feedback = false;
-
-  return true;
-}
-
 bool status_return(Device *device, String *args) {
   if (*args == "") return error(3);
 
@@ -495,13 +448,17 @@ bool error(int beepCnt) {
 void initial_device_setup() {
   DeviceArray[0] = &LitDevice;
   DeviceArray[1] = &LedDevice;
-  DeviceArray[2] = &FanDevice;
+  DeviceArray[2] = &AlmDevice;
+  DeviceArray[3] = &FanDevice;
 
   LitDevice.name = "LIT";
   LitDevice.pin = LIT_CONTROL_PIN;
 
   LedDevice.name = "LED";
   LedDevice.pin = LED_CONTROL_PIN;
+
+  LedDevice.name = "ALM";
+  LedDevice.pin = ALM_CONTROL_PIN;
 
   FanDevice.name = "FAN";
   FanDevice.pin = FAN_CONTROL_PIN;
