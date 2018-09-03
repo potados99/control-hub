@@ -148,7 +148,7 @@ void serial_task() {
 }
 
 void button_task(Button *button, Device *device) {
-  if (digitalRead(device->pin) == button->pinActive) { /* Button is pushed */
+  if (digitalRead(button->pin) == button->pinActive) { /* Button is pushed */
     Serial.println("dddd!");
     if ((~button->states & BTN_IS_PUSHED) && (~button->states & BTN_JUST_TOGGLED)) {
       toggle(device);
