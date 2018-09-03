@@ -166,7 +166,7 @@ void button_task(Button *button, Device *device) {
   if (millis() - button->lastToggle >= BTN_PREVENT_BOUNCE_TIME) button->states &= ~BTN_JUST_TOGGLED;
 }
 
-void rapid_task(Device *devices) {
+void rapid_task(Device *devices[]) {
   for (unsigned register int i = 0; i < NUMBER_OF_DEVICES; ++ i) {
     // Exception handling
     if (~devices[i]->rapidStates & RPD_MODE_IS_ON) {
@@ -300,7 +300,7 @@ bool device_control(Device *device, String *args) {
 }
 
 bool power_control(Device *device, bool power) {
-  if (device->rapidStates & RPD_MDOE_IS_ON) init_rapid_props(device);
+  if (device->rapidStates & RPD_MODE_IS_ON) init_rapid_props(device);
   analogWrite(device->pin, (device->power = power) ? (device->pwmVal * PWM_VAL_RATE) : 0);
   if (device->pwmVal == 100) beep(1);
   return (device->power == power);
@@ -311,6 +311,7 @@ bool pwm_control(Device *device, String *args) {
 
   int inputInt = (*args).toInt(); /* 0 to 100 val */
   if ((inputInt < 0) || (inputInt > 100)) return error(2);
+  if ((*args != "0") && (inputInt = 0)) return error(2);
 
   device->pwmVal = inputInt;
 
@@ -361,8 +362,10 @@ bool rapid_control(Device *device, String *args) {
     return power_control(device, device->power);
   }
 
-  unsigned long start = millis();
   unsigned long duration = (*args).toDouble() * 1000; /* Millis */
+  if (duration == 0) return error(2);
+
+  unsigned long start = millis();
 
   device->rapidStates = RPD_MODE_IS_ON;
   device->rapidStart = start;
