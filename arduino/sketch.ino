@@ -493,8 +493,8 @@ bool error(int beepCnt) {
 
 #ifdef INITIAL_SETUP
 void initial_device_setup() {
-  DeviceArray[0] = &LitDevice;
-  DeviceArray[1] = &LedDevice;
+  DeviceArray[1] = &LitDevice;
+  DeviceArray[0] = &LedDevice;
   DeviceArray[2] = &FanDevice;
 
   LitDevice.name = "LIT";
