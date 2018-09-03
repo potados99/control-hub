@@ -254,7 +254,10 @@ bool do_action(String incommingString) {
   if (incommingString == "") return error(3);
 
   String commands[PARAM_MAX];
-  for (unsigned register short i = 0; i < PARAM_MAX; ++ i) { commands[i] = split(incommingString, ' ', i); }
+  for (unsigned register short i = 0; i < PARAM_MAX; ++ i) { 
+    commands[i] = split(incommingString, ' ', i);
+    commands[i].trim();
+  }
 
   // Direct device control
   for (unsigned register short i = 0; i < NUMBER_OF_DEVICES; ++ i) {
@@ -310,8 +313,8 @@ bool pwm_control(Device *device, String *args) {
   if (*args == "") return error(3);
 
   int inputInt = (*args).toInt(); /* 0 to 100 val */
-  if ((inputInt < 0) || (inputInt > 100)) return error(2);
-  if ((*args != "0") && (inputInt = 0)) return error(2);
+  if ((inputInt < 0) || (inputInt > 100)) { return error(2); }
+  if ((*args != "0") && (inputInt == 0)) { return error(2); }
 
   device->pwmVal = inputInt;
 
