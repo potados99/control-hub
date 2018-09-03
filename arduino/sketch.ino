@@ -351,6 +351,7 @@ bool alarm(bool on) {
 bool alarm_return() {
   String outString = Alarm ? "ON" : "OFF";
   send(outString);
+  Feedback = false;
 
   return true;
 }
