@@ -311,7 +311,7 @@ bool rapid_toggle(Device *device, String *args) {
   bool originState = device->power;
 
   unsigned long startTime = millis();
-  unsigned long  duration = (*args).toDouble() * 1000;
+  unsigned long duration = (*args).toDouble() * 1000;
 
   for (;;) {
     power_control(device, true);
