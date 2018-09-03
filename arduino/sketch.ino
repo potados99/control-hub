@@ -335,9 +335,24 @@ bool alarm_control(String *args) {
   else if (*args == "OFF") {
     return alarm(false);
   }
+  else if (*args == "ST") {
+    return alarm_return();    
+  }
   else {
     return error(2);
   }
+}
+
+bool alarm(bool on) {
+  Alarm = on;
+  return Alarm == on;
+}
+
+bool alarm_return() {
+  String outString = Alarm ? "ON" : "OFF";
+  send(outString);
+
+  return true;
 }
 
 bool status_return(Device *device, String *args) {
@@ -384,11 +399,6 @@ bool toggle(Device *device) {
 
 void beep(int howMany) {
   Buzzer.countRemain += howMany;
-}
-
-bool alarm(bool on) {
-  Alarm = on;
-  return true;
 }
 #endif
 
