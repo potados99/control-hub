@@ -268,10 +268,10 @@ bool device_control(Device *device, String *args) {
   else if (*args == "BRT") { // PWM only
     return pwm_control(device, args+1);
   }
-  else if (*args == "SPD") { // PWM only
+  else if (*args == "VOL") { // PWM only
     return pwm_control(device, args+1);
   }
-  else if (*args == "VOL") { // PWM only
+  else if (*args == "SPD") { // PWM only
     return pwm_control(device, args+1);
   }
   else if (*args == "FADE") {
@@ -367,6 +367,9 @@ bool status_return(Device *device, String *args) {
     return power_return(device);
   }
   else if (*args == "BRT") {
+    return pwm_return(device);
+  }
+  else if (*args == "VOL") {
     return pwm_return(device);
   }
   else if (*args == "SPD") {
