@@ -29,24 +29,85 @@ At the end of the task, the app removes its pid from file, so the others can con
 
 GPIO controlled devices can have two characteristics, *power* and *pwm*.
 
-Currently arduino supports three devices: `LIT`, `LED`, `FAN`.
+Currently arduino supports these devices: 
+- `LIT`
+- `LED`
+- `FAN`
+- `ALM`
+
+Power charateristic can be called `PWR`.
+
+The property has two states `ON` and `OFF`.
+
+PWM characteristic can be called these words: 
+- `BRT` (for LED device)
+- `SPD` (for FAN device)
+- `VOL` (for ALM device)
+
+Those properties can have state of number from `0` to `100`.
+
+And the SET ONLY characteristics:
+- `RPD` (rapid, power property) + seconds from `0`~
+- `FADE` (pwm property) + `IN` or `OUT`
 
 These devices can be controlled using following commands.
 
-**Set commands**
+### Set
+
+**Power control**
+Setting power property doesn't require parameter `PWR`.
 ~~~
-[device] [ON | OFF]
+[device] [PWR] [arg]
 ~~~
+or
 ~~~
-[device] [BRT | SPD] [arguments for brightness or speed (0-100)] // pwm characteristic.
+[device] [arg]
 ~~~
 
-**Get commands**
+Examples:
 ~~~
-[device] ST [PWR | BRT | SPD]
+LIT ON
+~~~
+~~~
+LED PWR OFF
 ~~~
 
-**Returns**
+**PWM control**
+Those PWM characteristics are compatible each other.
+
+For any device, any parameters such as `BRT` or `SPD` are available.
+~~~
+[device] [BRT | SPD | VOL | RPD | FAD ] [arg]
+~~~
+
+Examples:
+~~~
+LED BRT 50
+~~~
+~~~
+ALM VOL 80
+~~~
+
+It is also POSSIBLE.
+~~~
+FAN BRT 100
+~~~
+It work same as `FAN SPD 100`.
+
+For set only characteristics:
+~~~
+LIT RPD 2 // Rapid fire the light for 2 seconds
+~~~
+~~~
+LED FADE IN
+~~~
+
+### Get
+~~~
+[device] ST [Power or PWM property]
+~~~
+
+### Returns
 
 Returned value for set commands is `T\n` or `F\n`.
 
