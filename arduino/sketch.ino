@@ -294,11 +294,10 @@ bool device_control(Device *device, String *args) {
 
 bool power_control(Device *device, bool power) {
   if (device->rapidStates & RPD_MODE_IS_ON) init_rapid_props(device);
-  if (device->power == power) return true;
 
   analogWrite(device->pin, (device->power = power) ? (device->pwmVal * PWM_VAL_RATE) : 0);
   if (device->pwmVal == 100) beep(1);
-  
+
   return (device->power == power);
 }
 
