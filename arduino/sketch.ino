@@ -151,7 +151,6 @@ void serial_task() {
 
 void button_task(Button *button, Device *device) {
   if (digitalRead(button->pin) == button->pinActive) { /* Button is pushed */
-    Serial.println("dddd!");
     if ((~button->states & BTN_IS_PUSHED) && (~button->states & BTN_JUST_TOGGLED)) {
       toggle(device);
     }
@@ -171,8 +170,6 @@ void button_task(Button *button, Device *device) {
 
 void rapid_task(Device *devices[]) {
   for (unsigned register int i = 0; i < NUMBER_OF_DEVICES; ++ i) {
-    static bool isDone = false;
-
     // Expirtaion handling
     bool rapidEnabled = (devices[i]->rapidStates & RPD_MODE_IS_ON);
     bool rapidDone = (millis() - devices[i]->rapidStart > devices[i]->rapidDuration);
@@ -181,7 +178,6 @@ void rapid_task(Device *devices[]) {
     if (rapidEnabled && rapidDone) {
       init_rapid_props(devices[i]);
       power_control(devices[i], devices[i]->power);
-      isDone = false;
       continue;
     }
 
@@ -237,6 +233,7 @@ void beep_task(Notifier *notifier) {
 bool do_action(String incommingString) {
   if (incommingString == "") return error(3);
 
+  // Split and process and store command strings
   String commands[PARAM_MAX];
   for (unsigned register short i = 0; i < PARAM_MAX; ++ i) {
     commands[i] = split(incommingString, ' ', i);
@@ -256,29 +253,39 @@ bool do_action(String incommingString) {
 bool device_control(Device *device, String *args) {
   if (*args == "") return error(3);
 
+  // Power control overload
   if (*args == "ON") {
     return power_control(device, true);
   }
   else if (*args == "OFF") {
     return power_control(device, false);
   }
+
+  // Power
+  else if (*args == "PWR") {
+    return power_control(device, args+1);
+  }
   else if (*args == "RPD") {
     return rapid_control(device, args+1);
   }
-  else if (*args == "BRT") { // PWM only
+
+  // PWM
+  else if (*args == "BRT") {
     return pwm_control(device, args+1);
   }
-  else if (*args == "VOL") { // PWM only
+  else if (*args == "VOL") {
     return pwm_control(device, args+1);
   }
-  else if (*args == "SPD") { // PWM only
+  else if (*args == "SPD") {
     return pwm_control(device, args+1);
   }
-  else if (*args == "FADE") {
+  else if (*args == "FAD") {
     return fade_control(device, args+1);
   }
-  else if (*args == "ST") {
-    return status_return(device, args+1);
+
+  // Status
+  else if (*args == "GET") {
+    return get_status(device, args+1);
   }
   else {
     return error(2);
@@ -290,6 +297,15 @@ bool power_control(Device *device, bool power) {
   analogWrite(device->pin, (device->power = power) ? (device->pwmVal * PWM_VAL_RATE) : 0);
   if (device->pwmVal == 100) beep(1);
   return (device->power == power);
+}
+
+// Overload for explicit PWR parameter
+bool power_control(Device *device, String *args) {
+  if (*args == "") return error(3);
+
+  if (*args == "ON") return power_control(device, true);
+  else if (*args == "OFF") return power_control(device, false);
+  else return error(2);
 }
 
 bool pwm_control(Device *device, String *args) {
@@ -360,27 +376,27 @@ bool rapid_control(Device *device, String *args) {
   return true;
 }
 
-bool status_return(Device *device, String *args) {
+bool get_status(Device *device, String *args) {
   if (*args == "") return error(3);
 
   if (*args == "PWR") {
-    return power_return(device);
+    return get_power(device);
   }
   else if (*args == "BRT") {
-    return pwm_return(device);
+    return get_pwm(device);
   }
   else if (*args == "VOL") {
-    return pwm_return(device);
+    return get_pwm(device);
   }
   else if (*args == "SPD") {
-    return pwm_return(device);
+    return get_pwm(device);
   }
   else {
     return error(2);
   }
 }
 
-bool power_return(Device *device) {
+bool get_power(Device *device) {
   String outString = device->power ? "ON" : "OFF";
   send(outString);
   Feedback = false;
@@ -388,7 +404,7 @@ bool power_return(Device *device) {
   return true;
 }
 
-bool pwm_return(Device *device) {
+bool get_pwm(Device *device) {
   String outString = String((int)device->pwmVal);
   send(outString);
   Feedback = false;
