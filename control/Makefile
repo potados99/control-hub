@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -O3
 TARGET = control
-BIN = /usr/local/bin
+BIN = /usr/bin
 
 $(TARGET) : main.c serial.c setting.c
 	$(CC) $(CFLAGS) -o $(TARGET) *.c
