@@ -117,7 +117,7 @@ Every data recieved should have Line Feed character at the end of it.
 
 ### Errors
 
-There are two errors it can handle.
+There are two types of error it can handle.
 
 One occurs when parameter is empty, with 3 times of beep.
 
