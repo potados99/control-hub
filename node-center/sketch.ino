@@ -1,11 +1,12 @@
-//
-//  control-hub.ino
-//  control/sketch
-//
-//  Created by POTADOS on 2018. 8. 24.
-//  Copyright © 2018 POTADOS. All rights reserved.
-//
-//
+/*------------------------------------------------------------------------------
+  This file is part of node-center.
+  The center node acts as a network coordinator, and also communicates with
+  HighPi server.
+
+
+  Created by POTADOS on 2018. 8. 24.
+  Copyright © 2018 POTADOS. All rights reserved.
+------------------------------------------------------------------------------*/
 
 ///////// Compile options //////////
 #define INCLUDES
@@ -32,6 +33,11 @@
 #define PARAM_MAX 3
 #define SOFT_RX 10
 #define SOFR_TX 11
+#define WAITING_FOR_RESPONSE 0x01
+#define SUCCEEDED 0x02
+#define RF_SERIAL_READ_TIMEOUT 2000
+#define RF_ID 0x01
+#define RF_BROAD 0x00
 
 // Pin numbers
 #define BUZ_CONTROL_PIN 2
@@ -96,14 +102,24 @@ typedef struct Notifier {
   unsigned int countRemain = 0;
   unsigned long lastToggle = 0;
 } Notifier;
+
+typedef struct SoftSerial {
+  SoftwareSerial* port;
+  char states = 0;
+  unsigned long lastSentTime = 0;
+  unsigned long lastRecievedTime = 0;
+  String lastSentData; /* RF command sent through RF serial */
+  String lastRecievedData;
+  String inputBuffer; /* RF serial input */
+} SoftSerial;
 #endif
 
 
 #ifdef GLOBAL_VARIABLES /* thread safe */
 String Input; /* serial input */
-String RFInput; /* RF serial input */
 
-SoftwareSerial RFSerial(SOFT_RX, SOFT_TX);
+SoftwareSerial _RFSoftSerial(SOFT_RX, SOFT_TX);
+SoftSerial RFSerial;
 
 Device *DeviceArray[NUMBER_OF_DEVICES];
 Device LitDevice;
@@ -114,8 +130,7 @@ Device FanDevice;
 Button LitButton;
 Notifier Buzzer;
 
-bool Alarm = false;
-bool Feedback = false;
+bool Feedback = true;
 #endif
 
 
@@ -128,7 +143,7 @@ void setup() {
 
 void loop() {
   serial_task();
-  rf_serial_task();
+  rf_serial_task(&RFSerial);
 
   button_task(&LitButton, &LitDevice);
   rapid_task(DeviceArray);
@@ -146,11 +161,22 @@ void serial_task() {
   if ((recieved == TERMINATE) || (recieved == TERMINATE_OPTIONAL)) {
     Input.toUpperCase();
 
-    if (do_action(Input)) {
-      if (Feedback) Serial.write("T\n");
+    bool directFeedback = false;
+    bool (*action)(String);
+    if (Input[0] == "$") {
+      action = rf_action;
+      directFeedback = false;
     }
     else {
-      if (Feedback) Serial.write("F\n");
+      action = do_action;
+      directFeedback = true;
+    }
+
+    if (action(Input)) {
+      if (Feedback && directFeedback) Serial.write("T\n");
+    }
+    else {
+      if (Feedback && directFeedback) Serial.write("F\n");
     }
 
     Input = "";
@@ -162,28 +188,40 @@ void serial_task() {
   Input += recieved; /* else, append recieved char to input */
 }
 
-void rf_serial_task() {
-  if (! RFSerial.available()) return; /* nothing to do when nothing arrived. */
+void rf_recieve_task(SoftSerial* serial) {
+  // Pass when not waiting for response.
+  if (~serial->states & WAITING_FOR_RESPONSE) {
+    // not waiting for input. return.
+    return;
+  }
+  else if (millis() - serial->lastSentTime > RF_SERIAL_READ_TIMEOUT) {
+      // waiting but no response for 2 seconds. TIMEOUT!
+      serial->states &= ~WAITING_FOR_RESPONSE;
+      serial->states &= ~SUCCEEDED;
+      send("F");
+      beep(5);
+      return;
+  }
 
-  char recieved = RFSerial.read();
+  if (! serial->port->available()) return; /* nothing to do when nothing arrived. */
 
-  if ((RFSerial == TERMINATE) || (RFSerial == TERMINATE_OPTIONAL)) {
-    RFInput.toUpperCase();
+  char recieved = serial->port->read();
 
-    if (do_action(Input)) {
-      if (Feedback) RFSerial.write("T\n");
+  if ((recieved == TERMINATE) || (recieved == TERMINATE_OPTIONAL)) {
+    if (rf_verify(serial)) {
+      if (Feedback) send("T");
     }
     else {
-      if (Feedback) RFSerial.write("F\n");
+      if (Feedback) send("F");
     }
 
-    RFInput = "";
+    serial->inputBuffer = "";
     Feedback = true;
 
     return; /* once LF came, return. */
   }
 
-  RFInput += recieved; /* else, append recieved char to input */
+  serial->inputBuffer += recieved; /* else, append recieved char to input */
 }
 
 void button_task(Button *button, Device *device) {
@@ -285,6 +323,39 @@ bool do_action(String incommingString) {
   }
 
   return error(2);
+}
+
+bool rf_action(String incommingString) {
+  send(&RFSerial, incommingString);
+  return true;
+}
+
+bool rf_verify(SoftSerial* serial) {
+  bool suc = true;
+
+  // Case 1: reciever wrong
+  if (get_reciever(serial->inputBuffer) != RF_ID) {
+    suc = false;
+  }
+  // Case 2: format wrong
+  if (serial->inputBuffer[0] != "!") {
+    suc = false;
+  }
+
+  if (suc) {
+    serial->states &= ~WAITING_FOR_RESPONSE; /* no waiting anymore */
+    serial->lastRecievedData = serialData->inputBuffer;
+    serial->states |= SUCCEEDED;
+  }
+  else {
+    serial->states |= WAITING_FOR_RESPONSE; /* no waiting anymore */
+    serial->states &= ~SUCCEEDED;
+    beep(4);
+  }
+
+  serial->inputBuffer = ""; /* flush anyway */
+
+  return suc;
 }
 
 bool device_control(Device *device, String *args) {
@@ -494,6 +565,24 @@ void send(String message) {
   Serial.print(message + TERMINATE);
 }
 
+void send(SoftSerial* serial, String message) {
+  serial->port->print(message + TERMINATE);
+
+  serial->lastSentTime = millis();
+  serial->lastSentData = message;
+  serial->states |= WAITING_FOR_RESPONSE;
+}
+
+int get_sender(String data) {
+  if (data == "") return -1;
+  return data.substring(0, 3).toInt(); // $XX00...
+}
+
+int get_reciever(String data) {
+  if (data == "") return -1;
+  return data.substring(3, 5).toInt(); // $XX00...
+}
+
 bool error(int beepCnt) {
   beep(beepCnt);
   return false;
@@ -507,6 +596,8 @@ void initial_device_setup() {
   DeviceArray[1] = &LedDevice;
   DeviceArray[2] = &AlmDevice;
   DeviceArray[3] = &FanDevice;
+
+  RFSerial.port = &_RFSoftSerial;
 
   LitDevice.name = "LIT";
   LitDevice.pin = LIT_CONTROL_PIN;
