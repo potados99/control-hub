@@ -8,6 +8,7 @@
 //
 
 ///////// Compile options //////////
+#define INCLUDES
 #define CONSTANTS
 #define STRUCT_DEFINITIONS
 #define GLOBAL_VARIABLES
@@ -18,6 +19,10 @@
 #define INITIAL_SETUP
 ////////////////////////////////////
 
+#ifdef INCLUDES
+#include <SoftwareSerial.h>
+#endif
+
 #ifdef CONSTANTS
 // Serial
 #define SERIAL_BAUDRATE 9600
@@ -25,6 +30,8 @@
 #define TERMINATE '\n'
 #define TERMINATE_OPTIONAL ';'
 #define PARAM_MAX 3
+#define SOFT_RX 10
+#define SOFR_TX 11
 
 // Pin numbers
 #define BUZ_CONTROL_PIN 2
@@ -94,6 +101,9 @@ typedef struct Notifier {
 
 #ifdef GLOBAL_VARIABLES /* thread safe */
 String Input; /* serial input */
+String RFInput; /* RF serial input */
+
+SoftwareSerial RFSerial(SOFT_RX, SOFT_TX);
 
 Device *DeviceArray[NUMBER_OF_DEVICES];
 Device LitDevice;
@@ -118,6 +128,8 @@ void setup() {
 
 void loop() {
   serial_task();
+  rf_serial_task();
+
   button_task(&LitButton, &LitDevice);
   rapid_task(DeviceArray);
   beep_task(&Buzzer);
@@ -133,6 +145,7 @@ void serial_task() {
 
   if ((recieved == TERMINATE) || (recieved == TERMINATE_OPTIONAL)) {
     Input.toUpperCase();
+
     if (do_action(Input)) {
       if (Feedback) Serial.write("T\n");
     }
@@ -147,6 +160,30 @@ void serial_task() {
   }
 
   Input += recieved; /* else, append recieved char to input */
+}
+
+void rf_serial_task() {
+  if (! RFSerial.available()) return; /* nothing to do when nothing arrived. */
+
+  char recieved = RFSerial.read();
+
+  if ((RFSerial == TERMINATE) || (RFSerial == TERMINATE_OPTIONAL)) {
+    RFInput.toUpperCase();
+
+    if (do_action(Input)) {
+      if (Feedback) RFSerial.write("T\n");
+    }
+    else {
+      if (Feedback) RFSerial.write("F\n");
+    }
+
+    RFInput = "";
+    Feedback = true;
+
+    return; /* once LF came, return. */
+  }
+
+  RFInput += recieved; /* else, append recieved char to input */
 }
 
 void button_task(Button *button, Device *device) {
@@ -503,6 +540,9 @@ void initial_serial_setup() {
   Serial.begin(SERIAL_BAUDRATE);
   Serial.setTimeout(0);
   Serial.print("Serial ready.\n");
+
+  RFSerial.begin(SERIAL_BAUDRATE);
+  RFSerial.setTimeout(0);
 
   Feedback = true;
   beep(5);
