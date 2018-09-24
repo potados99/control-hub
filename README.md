@@ -115,3 +115,11 @@ For get commands is `ON\n` or `OFF\n` or number `{0-100}\n`.
 
 Every data recieved should have Line Feed character at the end of it.
 
+### Errors
+
+There are two types of error it can handle.
+
+One occurs when parameter is empty, with 3 times of beep.
+
+The other occurs when the parameter is wrong, with 2 beeps.
+
