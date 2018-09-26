@@ -1,66 +1,64 @@
 #ifndef POTADOSPROTOCOL_h
 #define POTADOSPROTOCOL_h
 
-#include <Arduino.h>
-#include <SoftwareSerial.h>
+#include "includes.h"
+#include "PPPacket.h"
 
 #define TERMINATE '\n'
 #define TERMINATE_OPTIONAL ';'
 
-typedef enum States {
-  WAITING_FOR_RESPONSE = 0x01,
-  SUCCEEDED = 0x02
-} SERIAL_STATE;
+typedef void (*Callback)(PPPacket&);
 
-typedef enum Type {
-  ORDER = '!',
-  ASK = '?',
-  REPLY = ':',
-  REQUEST_RESEND = '~'
-} PACKET_TYPE;
-
-typedef void (*callback)(String);
-
-class PPPacket
+typedef enum ComState
 {
-private:
-  String            fillZeroHexString(uint8_t val, uint8_t digits = 2);
+  WAITING_FOR_REQUEST   = 0x11,
+  WAITING_FOR_RESPONSE  = 0x02,
+  PROCESSING_REQUEST    = 0x24,
 
-public:
-  char              type;
-  uint8_t           senderID;
-  uint8_t           recieverID;
-  uint8_t           dataLength; // number of digits of hex data
+  REQUEST_AVAILABLE     = 0x10,
+  REPLY_AVAILABLE       = 0x20
+} COM_STATE;
 
-  String            data;
-
-  PPPacket(char type, uint8_t sender, uint8_t reciever, uint8_t dataLen, String data = "");
-
-  String            toString();
-}
+typedef enum ListenResult
+{
+  TIMEOUT,
+  RECIEVED_NOTHING,
+  RECIEVED_REQUEST,
+  RECIEVED_RESPONSE,
+  RECIEVED_BAD_PACKET,
+  RECIEVED_DONT_CARE,
+  UNABLE_TO_RECIEVE
+} LISTEN_RESULT;
 
 class PPSerial
 {
 private:
   SoftwareSerial    serial;
-  uint8_t           id;
-  uint8_t           states = 0;
-  uint16_t          readTimeOut = 2000;
+  byte              id;
+  byte              state = 0;
+
+  uint16_t          timeOut = 2000;
+
   uint64_t          lastSentTime = 0;
   uint64_t          lastRecievedTime = 0;
   PPPacket          lastSentPacket = "";
   PPPacket          lastRecievedPacket = "";
   String            inputBuffer = "";
 
-  bool              parsePacket(String incommingString, PPPacket& packet);
+  Callback          onRequest;
+  Callback          onResponse;
+
+  byte              parsePacket(String incommingString, PPPacket& packet);
 
 public:
-  PPSerial(uint8_t rx_pin, uint8_t tx_pin, uint8_t id); // rx, tx, id
+  PPSerial(byte rx_pin, byte tx_pin, byte id, Callback listenCallback); // rx, tx, id
   ~PPSerial(void);
 
-  void              send(uint8_t dest, String data);
-  void              listen(void);
-  bool              verify(void);
+  byte              send(PPPacket& packet, bool nonBlocked);
+  byte              send(char type, byte dest, String data, bool nonBlocked);
+  byte              reSend(void);
+  byte              listen(void);
+  void              loop();
 };
 
 #endif
