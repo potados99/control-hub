@@ -11,6 +11,10 @@
 
 #include <iostream>
 
+#define HAS(X, Y) ((X) & (Y))
+#define ADD(X, Y) ((X) |= (Y))
+#define SUB(X, Y) ((X) &= ~(Y))
+
 class ILoop {
 public:
     virtual void loop() = 0;

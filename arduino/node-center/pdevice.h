@@ -7,10 +7,6 @@
 
 #define PWM_VAL_RATE (2.55L)
 
-#define HAS(X, Y) ((X) & (Y))
-#define ADD(X, Y) ((X) |= (Y))
-#define SUB(X, Y) ((X) &= ~(Y))
-
 typedef enum RapidStates {
     RAPID_MODE_IS_ON = 1,
     RAPID_DEV_IS_ON
