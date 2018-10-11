@@ -22,6 +22,8 @@ int main(int argc, const char * argv[]) {
 	// same for sending request
 	char reqFifoPath[32] = {0,};
 	join(reqFifoPath, TMPDIR, REQ_PIPE_NAME);
+
+	// make pipe
         make_pipe(resFifoPath);
 
 	// open
