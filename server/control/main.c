@@ -8,10 +8,8 @@ char resFifoPath[32];
 int main(int argc, const char * argv[]) {
 	signal(SIGINT, sig_handler);
 
-        if (argc < 2) {
-                printf("Not enough arguments!\n");
-                return -1;
-        }
+        if (argc < 2) ERROR("Too less arguments!\n")
+	if (argc > 4) ERROR("Too much arguments!\n")
 
 	// pid and pid string
         int pid = getpid();
@@ -32,7 +30,9 @@ int main(int argc, const char * argv[]) {
 
 	// write request
         char wbuf[64] = {0,};
-	join(wbuf, pidStr, argv[1]);
+	char cmd[48] = {0,};
+	combine(cmd, argc, argv);
+	join(wbuf, pidStr, cmd);
         ipc_write(reqfd, TERMINATE, wbuf);
         close(reqfd);
 
