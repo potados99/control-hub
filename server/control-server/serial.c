@@ -10,7 +10,7 @@ int serial_open(const char *port, int baudrate) {
   _set_interface_attribs (fd, baudrate, 0); /* set speed to 9,600 bps, 8n1 (no parity) */
   _set_blocking (fd, 0);
 
-	return fd;
+  return fd;
 }
 
 bool serial_send(int fd, char delim, char *wbuf, char *rbuf, int rbufSize) {

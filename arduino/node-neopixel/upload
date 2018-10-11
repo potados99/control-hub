@@ -1,3 +1,0 @@
-#!/bin/bash
-
-sudo arduino --upload sketch.ino --port /dev/ttyUSB0

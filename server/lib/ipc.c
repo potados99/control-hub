@@ -52,5 +52,10 @@ void make_pipe(const char *name) {
 }
 
 void remove_pipe(const char *name) {
-	if (unlink(name)) ERRORF("Failed removing %s\n", name);
+	if (access(name, F_OK) != -1) {
+		if (unlink(name)) ERRORF("Failed removing %s\n", name);
+	}
+	else {
+    		// file doesn't exist
+	}
 }

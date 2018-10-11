@@ -2,7 +2,12 @@
 
 #define TMPDIR "/home/potados/.control"
 
+int resfd = -1;
+char resFifoPath[32];
+
 int main(int argc, const char * argv[]) {
+	signal(SIGINT, sig_handler);
+
         if (argc < 2) {
                 printf("Not enough arguments!\n");
                 return -1;
@@ -14,7 +19,6 @@ int main(int argc, const char * argv[]) {
 	sprintf(pidStr, "%d", pid);
 
 	// fifo pipe file path for recieving response
-        char resFifoPath[32] = {0,};
 	join(resFifoPath, TMPDIR, pidStr);
 
 	// same for sending request
@@ -23,8 +27,8 @@ int main(int argc, const char * argv[]) {
         make_pipe(resFifoPath);
 
 	// open
-        int resfd = open_pipe(resFifoPath, O_RDWR);
-        int reqfd = open_pipe(reqFifoPath, O_RDWR | O_NONBLOCK);
+        resfd = open_pipe(resFifoPath, O_RDONLY | O_NONBLOCK);
+        int reqfd = open_pipe(reqFifoPath, O_WRONLY | O_NONBLOCK);
 
 	// write request
         char wbuf[64] = {0,};

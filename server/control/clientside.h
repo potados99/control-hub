@@ -8,4 +8,7 @@
 
 void on_response(char *recieved);
 
+void sig_handler(int sig);
+void done(void);
+
 #endif /* write_h */

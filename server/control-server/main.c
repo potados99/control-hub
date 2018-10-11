@@ -1,9 +1,14 @@
 #include "serverside.h"
 
 int serialfd = -1;
+int socketfd = -1;
 const char *tempDir;
 
 int main(int argc, const char * argv[]) {
+	signal(SIGINT, sig_handler);
+
+	if (! check_socket(5555)) ERROR("Other instance is already running.\n")
+
 	if (argc < 4) {
 		printf("Too less arguments!\n");
 		printf("Usage: [executable] [temp directory] [serial port] [baudrate]\n");
@@ -14,11 +19,14 @@ int main(int argc, const char * argv[]) {
 	tempDir = argv[1];
 	const char *serialPort = argv[2];
 	int baudrate = atoi(argv[3]);
-	printf("Program loaded.\n temp directory: %s\n serial port: %s\n baudrate: %d\n", tempDir, serialPort, baudrate);
+	printf("Program loaded with arguments:\n");
+	printf("  temp dir:	%s\n", tempDir);
+	printf("  serial port:	%s\n", serialPort);
+	printf("  baudrate:	%d\n\n", baudrate);
 
 	// open serial port
 	serialfd = serial_open(serialPort, baudrate);
-	printf("Serial port opened at %s.\n", serialPort);
+	printf("Opened serial port at %s.\n", serialPort);
 
 	// recreate req fifo pipe file
 	char reqFifoPath[32] = {0,};
@@ -27,7 +35,7 @@ int main(int argc, const char * argv[]) {
         make_pipe(reqFifoPath);
 
 	// open
-        int listenfd = open_pipe(reqFifoPath, O_RDWR | O_NONBLOCK);
+        int listenfd = open_pipe(reqFifoPath, O_RDONLY | O_NONBLOCK);
 	printf("Opened request pipe at %s.\n", reqFifoPath);
 
 	// listen
