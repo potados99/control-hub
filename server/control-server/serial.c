@@ -1,69 +1,32 @@
 #include "serial.h"
-#include "setting.h"
-#include "run.h" /* all_done */
 
-extern volatile sig_atomic_t flag; /* Declaired in main.c */
-
-bool send_command(const char *command) {
-  // getting port from setting
-  char port[SETTING_LENG_MAX];
-  memset(port, 0, sizeof(port));
-  get_setting(SECTION_KEY, PORT_KEY, port);
-
-  // getting baudrate from setting
-  char baudrateStr[SETTING_LENG_MAX] = {0,};
-  memset(baudrateStr, 0, sizeof(baudrateStr));
-  get_setting(SECTION_KEY, BDRT_KEY, baudrateStr);
-  int baudrate = atoi(baudrateStr);
-  if (baudrate == 0) ERROR("Error from baudrate. Not a number.\n")
-
-  // opening port
+int serial_open(const char *port, int baudrate) {
   int fd = 0;
   time_t t = time(NULL);
   while ((fd = open(port, O_RDWR | O_NOCTTY | O_SYNC)) < 0) {
-    ////////// Flag //////////
-    if (flag) {
-      all_done(PIDFILE_PATH);
-      LOGF("Exit with %d.\n", flag)
-      exit(flag);
-    }
-    //////////////////////////
     if (time(NULL) - t >= SERIAL_TIMEOUT) ERROR("Error opening port. Timeout.\n")
   }
 
-  set_interface_attribs (fd, baudrate, 0); /* set speed to 9,600 bps, 8n1 (no parity) */
-  set_blocking (fd, 0);
+  _set_interface_attribs (fd, baudrate, 0); /* set speed to 9,600 bps, 8n1 (no parity) */
+  _set_blocking (fd, 0);
 
-  LOGF("Write [%s]\n", command)
+	return fd;
+}
 
-  // writing
-  int wlen = write(fd, command, strlen(command));
-  if (wlen != strlen(command)) ERROR("Error from writing.\n")
+bool serial_send(int fd, char delim, char *wbuf, char *rbuf, int rbufSize) {
+  LOGF("Will write [%s]\n", command)
+
+  ipc_write(fd, delim, wbuf);
   tcdrain(fd);
+  LOGF("Did write [%s]\n", command)
 
-  // ready for read
-  char buf[CMDBUFF_MAX];
-  memset(buf, 0, sizeof(buf));
-  char *bufptr = buf; /* for count */
-  int nbytes = 0;
-
-  // read until '\n' or '\r'
-  while ((nbytes = read(fd, bufptr, sizeof(buf) - (bufptr - buf) - 1)) > 0)
-  {
-    bufptr += nbytes;
-    if (bufptr[-1] == '\n' || bufptr[-1] == '\r') break;
-  } *bufptr = '\0';
-
-  close(fd);
-
+  ipc_read(fd, delim, rbuf, rbufSize);
   LOGF("Read [%s]\n", buf)
-
-  fprintf(stdout, "%s", buf); /* print only first line to console */
 
   return TRUE;
 }
 
-void set_interface_attribs (int fd, int speed, int parity) {
+void _set_interface_attribs (int fd, int speed, int parity) {
   struct termios tty;
   memset (&tty, 0, sizeof tty);
   if (tcgetattr (fd, &tty) != 0) ERROR("Error from tcgetattr.\n")
@@ -93,7 +56,7 @@ void set_interface_attribs (int fd, int speed, int parity) {
   if (tcsetattr (fd, TCSANOW, &tty) != 0) ERROR("Error from tcsetattr.\n")
 }
 
-void set_blocking (int fd, int should_block) {
+void _set_blocking (int fd, int should_block) {
   struct termios tty;
   memset (&tty, 0, sizeof tty);
   if (tcgetattr (fd, &tty) != 0) ERROR("Error from tggetattr.\n")

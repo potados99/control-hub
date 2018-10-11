@@ -1,5 +1,0 @@
-[device]
-
-port=/dev/ttyUSB0
-baudrate=9600
-enable=1

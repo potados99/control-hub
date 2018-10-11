@@ -7,11 +7,6 @@
 #include <unistd.h>
 #include <signal.h>
 
-typedef enum bool {
-	TRUE = 1,
-	FALSE = 0
-} bool;
-
 #define ERROR(x) { fprintf(stderr, "[ERROR] %s", x); exit(1); }
 #define ERRORF(x, ...) { fprintf(stderr, "[ERROR] ");  fprintf(stderr, x, __VA_ARGS__); exit(1); }
 
