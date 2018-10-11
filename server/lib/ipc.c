@@ -18,11 +18,9 @@ int ipc_read(int fd, char delim, char *rbuf, unsigned int rbufSize) {
 	char *rbufPtr = rbuf;
 	int rbytes;
 
-	int cnt = 0;
-
 	while ((rbytes = read(fd, rbufPtr, 1)) > 0) {
 		rbufPtr += rbytes;
-		if (rbufPtr[-1] == delim || cnt > 50) break;
+		if (rbufPtr[-1] == delim) break;
 	} rbufPtr[-1] = '\0'; // remove delim
 
 	return rbytes;

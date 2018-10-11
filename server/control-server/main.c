@@ -47,6 +47,10 @@ int main(int argc, const char * argv[]) {
 	params.behavior = L_KEEP | L_CLBCK;
 	params.callback = action;
 
+	// empty serial buffer
+	sleep(2);
+	tcflush(serialfd, TCIOFLUSH);
+
 	printf("Start listening.\n");
         ipc_listen(params);
 

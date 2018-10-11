@@ -17,7 +17,7 @@ bool serial_send(int fd, char delim, char *wbuf, char *rbuf, int rbufSize) {
   LOGF("Will write [%s]\n", command)
 
   ipc_write(fd, delim, wbuf);
-  tcdrain(fd);
+//  tcdrain(fd);
   LOGF("Did write [%s]\n", command)
 
   ipc_read(fd, delim, rbuf, rbufSize);
