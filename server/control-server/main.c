@@ -1,5 +1,7 @@
 #include "serverside.h"
 
+#define SOCKET_PORT_NUMBER 5555
+
 int serialfd = -1;
 int socketfd = -1;
 const char *tempDir;
@@ -7,7 +9,7 @@ const char *tempDir;
 int main(int argc, const char * argv[]) {
 	signal(SIGINT, sig_handler);
 
-	if (! check_socket(5555)) ERROR("Other instance is already running.\n")
+	if (! check_socket(SOCKET_PORT_NUMBER)) ERROR("Other instance is already running.\n")
 
 	if (argc < 4) {
 		printf("Too less arguments!\n");
