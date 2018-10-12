@@ -7,4 +7,6 @@ void join(char *dest, const char *path1, const char *path2);
 
 void divide(const char *origin, char *out1, char delim, char *out2);
 
+void combine(char *dest, int argc, const char *argv[]);
+
 #endif

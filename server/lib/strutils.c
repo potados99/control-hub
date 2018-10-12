@@ -26,3 +26,10 @@ void divide(const char *origin, char *out1, char delim, char *out2) {
         memcpy(out1, origin, delimIndex);
         memcpy(out2, origin + delimIndex + 1, strlen(origin) - delimIndex);
 }
+
+void combine(char *dest, int argc, const char *argv[]) {
+	for (int i = 1; i < argc; ++ i) {
+		strcat(dest, argv[i]);
+		if (i < argc - 1) strcat(dest, " ");
+	}
+}
